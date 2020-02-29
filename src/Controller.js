@@ -1,6 +1,3 @@
-import { Map } from './Map'
-import { Character } from './Character';
-
 export class Controller {
     constructor(game, view) {
         this.game = game;
@@ -8,7 +5,18 @@ export class Controller {
     }
 
     handleEvent(event) {
-        switch(event.keyCode) {
+        switch (event.type) {
+            case 'mousemove':
+                return this.handleMouseMove(event);
+            case 'click':
+                return this.handleMouseClick(event);
+            case 'keydown':
+                return this.handleKeyDown(event);
+        }
+    }
+
+    handleKeyDown(event) {
+        switch (event.keyCode) {
             case 33:
                 this.game.movePlayer(1, -1);
                 break;
@@ -34,7 +42,19 @@ export class Controller {
                 this.game.movePlayer(0, 1);
                 break;
         }
-        this.view.draw();
+        this.view.drawMap();
+        this.view.drawOverlay();
+    }
+
+    handleMouseMove(event) {
+        let coords = this.view.display.eventToPosition(event);
+        this.view.updateMouseCoords(coords);
+        this.view.drawOverlay();
+    }
+
+    handleMouseClick(event) {
+        let coords = this.view.display.eventToPosition(event);
+        console.log('You clicked ' + coords);
     }
 
 }

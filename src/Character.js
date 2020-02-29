@@ -1,12 +1,12 @@
 export class Character {
     constructor() {
         this.name = 'Rodney';
-        this.displayChar = '@';
+        this.symbol = '@';
     }
 
     getDisplayChar() {
         return {
-            char: this.displayChar,
+            symbol: this.symbol,
             color: 'white'
         };
     }
