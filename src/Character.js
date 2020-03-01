@@ -2,6 +2,8 @@ export class Character {
     constructor() {
         this.name = 'Rodney';
         this.symbol = '@';
+
+        this.cents = 200;
     }
 
     getDisplayChar() {

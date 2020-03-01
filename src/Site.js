@@ -1,4 +1,4 @@
-import { TILE_DIRT_1, TILE_GRASS, TILE_WATER, TILE_DIRT_2 } from './Constants';
+import { TILE_DIRT_1, TILE_DIRT_2, TILE_WOOD_FLOOR, TILE_WOOD_WALL, TILE_WOOD_DOOR, TILE_POKER_TABLE } from './Constants';
 
 export class Site {
     constructor(top, left, width, height) {
@@ -8,28 +8,27 @@ export class Site {
         this.height = height;
     }
 
-    getTile(x, y) {
-        if (x < 10 && y < 10) {
-            return TILE_DIRT;
+    overlapsCell(x, y) {
+        if (x < this.left || x > this.left + this.width - 1) {
+            return false;
         }
-
-        if (x > 100 && x < 110) {
-            return TILE_WATER;
+        if (y < this.top || y > this.top + this.height - 1) {
+            return false;
         }
-        return TILE_GRASS;
+        return true;
     }
 
+    getTile(x, y) {
+        return this.tiles[x][y];
+    }
 }
 
 export class Town extends Site {
     constructor(top, left, width, height) {
         super(top, left, width, height);
-        this.top = top;
-        this.left = left;
-        this.width = width;
-        this.height = height;
 
         this.createGround();
+        this.createSaloon(30, 30, 10, 10);
     }
 
     createGround() {
@@ -42,20 +41,27 @@ export class Town extends Site {
         }
     }
 
-    //createSaloon()
+    createSaloon(top, left, width, height) {
+        for (let x = left; x < left + width; x++) {
+            for (let y = top; y < top + height; y++) {
+                this.tiles[x][y] = TILE_WOOD_FLOOR;
+            }
+        }
 
-}
+        for (let x = left; x < left + width; x++) {
+            this.tiles[x][top] = TILE_WOOD_WALL;
+            this.tiles[x][top + height] = TILE_WOOD_WALL;
+        }
 
-export class Saloon extends Site {
-    constructor(top, left, width, height) {
-        super(top, left, width, height);
-        this.top = top;
-        this.left = left;
-        this.width = width;
-        this.height = height;
-    }
+        for (let y = top; y < top + height; y++) {
+            this.tiles[left][y] = TILE_WOOD_WALL;
+            this.tiles[left + width][y] = TILE_WOOD_WALL;
+        }
+        this.tiles[left + width][top + height] = TILE_WOOD_WALL;
 
-    getTile(x, y) {
+        this.tiles[left + 5][top + 5] = TILE_POKER_TABLE;
+
+        this.tiles[left + 6][top + height] = TILE_WOOD_DOOR;
     }
 
 }

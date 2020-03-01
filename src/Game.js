@@ -1,5 +1,6 @@
 import { Map } from './Map'
 import { Character } from './Character';
+import { TILES } from './Constants';
 
 export class Game {
     constructor() {
@@ -30,10 +31,26 @@ export class Game {
         }
     }
 
+    spaceIsPassable(x, y) {
+        if (TILES[this.getCellContents(x, y).terrain].blocksMove) {
+            return false;
+        }
+        if (this.getCharacters(x, y).length) {
+            return false;
+        }
+        return true;
+    }
+
     movePlayer(dx, dy) {
-        this.player.x += dx;
-        this.player.y += dy;
-        this.playTurn();
+        let newX = this.player.x + dx;
+        let newY = this.player.y + dy;
+
+        if (this.spaceIsPassable(newX, newY)) {
+            this.player.x = newX;
+            this.player.y = newY;
+            this.playTurn();
+        }
+
     }
 
     playTurn() {
