@@ -1,6 +1,5 @@
 import { HEARTS, DIAMONDS, SPADES, CLUBS, valueToChar, suitToChar, formatMoney } from "./Constants";
-import { evaluateAndFindCards } from 'poker-ranking';
-import analyze from './HandAnalyzer';
+import { analyzeHand, compareHands } from './HandAnalyzer';
 
 export class PokerGame {
     constructor(rootGame, x, y) {
@@ -13,6 +12,8 @@ export class PokerGame {
         this.dealer = null;
         this.activePlayer = null;
         this.lastPlayerToBet = null;
+
+        this.winningHand = { comboRank: -1 };
 
         this.smallBlind = 100;
         this.bigBlind = 200;
@@ -76,6 +77,8 @@ export class PokerGame {
                     return this.river();
                 case 4:
                     return this.reveal();
+                case 5:
+                    return this.dividePot();
             }
         } else {
             this.activePlayer.play();
@@ -143,6 +146,13 @@ export class PokerGame {
         this.activePlayer = this.getNextPlayer(this.dealer);
     }
 
+    dividePot() {
+        this.round = 6;
+        let winners = this.players.filter(p => compareHands(this.winningHand, p.bestHand()) === 0);
+        console.log(winners);
+        winners.map(p => p.character.say('I win!'));
+    }
+
 }
 
 class Player {
@@ -176,7 +186,7 @@ class Player {
     }
 
     bestHand() {
-        return analyze(this.hole, this.game.communityCards);
+        return analyzeHand(this.hole, this.game.communityCards);
     }
 
     takeCard(card) {
@@ -228,7 +238,9 @@ class Player {
         this.cardsRevealed = true;
         let hand = this.bestHand();
         this.character.say(`${_.capitalize(hand.match)}.`);
-        console.log(hand);
+        if (compareHands(hand, this.game.winningHand) <= 0) {
+            this.game.winningHand = hand;
+        }
     }
 
     muckCards() {

@@ -39,14 +39,40 @@ const matchNameToHandRank = (matchName) => {
     return map[matchName];
 }
 
-export default function (hole, common) {
+export function analyzeHand(hole, common) {
     let all = hole.concat(common).map(card => card.toRankingString());
     let hand = evaluateAndFindCards(all);
     let others = _.difference(all, hand.cards).sort(rankingStringSort).slice(0, 5 - hand.cards.length);
     return {
         match: hand.match,
-        cardsInCombo: hand.cards,
-        bestCardsOutOfCombo: others,
-        handRank: matchNameToHandRank(hand.match)
+        cardsInCombo: hand.cards.map(rankingStringToRank),
+        bestCardsOutOfCombo: others.map(rankingStringToRank),
+        comboRank: matchNameToHandRank(hand.match)
     }
+}
+
+export function compareSetOfSortedCards(a, b) {
+    let comboA = [...a];
+    let comboB = [...b];
+    while (comboA[0] === comboB[0] && comboA.length && comboB.length) {
+        comboA.shift();
+        comboB.shift();
+    }
+    if (comboA.length && comboB.length) {
+        return Math.sign(comboB[0] - comboA[0]);
+    }
+    return 0;
+}
+
+export function compareHands(a, b) {
+    if (a.comboRank !== b.comboRank) {
+        return Math.sign(b.comboRank - a.comboRank);
+    }
+
+    let comboComparison = compareSetOfSortedCards(a.cardsInCombo, b.cardsInCombo);
+    if (comboComparison) {
+        return comboComparison;
+    }
+
+    return compareSetOfSortedCards(a.bestCardsOutOfCombo, b.bestCardsOutOfCombo);
 }
