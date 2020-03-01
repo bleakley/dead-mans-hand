@@ -135,6 +135,7 @@ export class PokerGame {
     reveal() {
         this.round = 5;
         this.dealer.character.say('Show your cards!');
+        this.players.map(p => p.revealCards());
     }
 
 }
@@ -149,6 +150,7 @@ class Player {
 
         this.inCurrentHand = false;
         this.hasTakenActionSinceLastRaise = false;
+        this.cardsRevealed = false;
     }
 
     isDealer() {
@@ -168,7 +170,7 @@ class Player {
     }
 
     bestHand() {
-        return evaluateAndFindCards(this.hole.concat(this.game.communityCards));
+        return evaluateAndFindCards(this.hole.concat(this.game.communityCards).map(card => card.toRankingString()));
     }
 
     takeCard(card) {
@@ -211,6 +213,12 @@ class Player {
 
     raise() {
 
+    }
+
+    revealCards() {
+        this.cardsRevealed = true;
+        let bestHand = this.bestHand();
+        this.character.say(`${_.capitalize(bestHand.match)}.`);
     }
 }
 

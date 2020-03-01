@@ -6,8 +6,8 @@ const halfHeight = Math.floor(GAME_WINDOW_HEIGHT / 2);
 const widthOdd = GAME_WINDOW_WIDTH % 2 !== 0;
 const heightOdd = GAME_WINDOW_HEIGHT % 2 !== 0;
 
-const formatCards = function(cards) {
-    return cards.map(card => `%c{${card.getColor()}}%b{white}${card.toString()}%c{white}%b{black}`).join(' ');
+const formatCards = function(cards, hidden=false) {
+    return cards.map(card => `%c{${hidden ? 'black' : card.getColor()}}%b{white}${hidden ? '??' : card.toString()}%c{white}%b{black}`).join(' ');
 }
 
 export class View {
@@ -103,7 +103,12 @@ export class View {
             this.display.drawText(mouseDisplay.x + 2, mouseDisplay.y + 1, `Health: ${character.health}/${character.getMaxHealth()}`);
             this.display.drawText(mouseDisplay.x + 2, mouseDisplay.y + 2, `Vigilance: ${character.vigilance}/${character.getMaxVigilance()}`);
             this.display.drawText(mouseDisplay.x + 2, mouseDisplay.y + 3, `Subterfuge: ${character.isPC ? character.subterfuge : '?'}/${character.getMaxSubterfuge()}`);
-            this.display.drawText(mouseDisplay.x + 2, mouseDisplay.y + 4, formatMoney(character.cents));
+            this.display.drawText(mouseDisplay.x + 2, mouseDisplay.y + 4, `Money: ${formatMoney(character.cents)}`);
+            if (character.activePokerPlayerRole) {
+                this.display.drawText(mouseDisplay.x + 2, mouseDisplay.y + 5, `Current bet: ${formatMoney(character.activePokerPlayerRole.currentBet)}`);
+                let cardsVisible = character.isPC || character.activePokerPlayerRole.cardsRevealed;
+                this.display.drawText(mouseDisplay.x + 2, mouseDisplay.y + 6, `Hole cards: ${formatCards(character.activePokerPlayerRole.hole, !cardsVisible)}`);
+            }
         }
 
         let pokerGame = this.game.getPokerGame(mouseMap.x, mouseMap.y);
