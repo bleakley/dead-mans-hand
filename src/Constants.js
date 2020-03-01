@@ -19,8 +19,58 @@ export function sampleFromSeed(seed, items) {
     return items[Math.floor(fromSeed(seed) * items.length)];
 }
 
+export function valueToChar(value) {
+    switch(value) {
+        case 11:
+            return 'J';
+        case 12:
+            return 'Q';
+        case 13:
+            return 'K';
+        case 14:
+            return 'A'
+    }
+    if (value >= 2 && value <= 10) {
+        return value;
+    }
+    return '?';
+}
+
 let count = 0;
 let next = () => count++;
+
+export const HEARTS = next();
+export const CLUBS = next();
+export const DIAMONDS = next();
+export const SPADES = next();
+
+export function suitToChar(suit) {
+    switch(suit) {
+        case SPADES:
+            return '\u2660';
+        case HEARTS:
+            return '\u2665';
+        case CLUBS:
+            return '\u2663';
+        case DIAMONDS:
+            return '\u2666';
+    }
+    return '?';
+}
+
+export function suitToRankingChar(suit) {
+    switch(suit) {
+        case SPADES:
+            return 'S';
+        case HEARTS:
+            return 'H';
+        case CLUBS:
+            return 'C';
+        case DIAMONDS:
+            return 'D';
+    }
+    return '?';
+}
 
 export const TILE_DIRT_1 = next();
 export const TILE_DIRT_2 = next();
@@ -114,3 +164,182 @@ TILES[TILE_POKER_TABLE] = {
     blocksMove: true,
     blocksVision: false
 };
+
+export const MALE_NAMES = [
+    'Abner',
+    'Adam',
+    'August',
+    'Austin',
+    'Bart',
+    'Beau',
+    'Billy',
+    'Blaze',
+    'Bo',
+    'Boone',
+    'Bowen',
+    'Bowie',
+    'Brawley',
+    'Breaker',
+    'Brent',
+    'Bret',
+    'Brock',
+    'Brody',
+    'Bronco',
+    'Brooks',
+    'Buck',
+    'Buster',
+    'Butch',
+    'Cal',
+    'Calhoun',
+    'Carson',
+    'Casey',
+    'Cash',
+    'Cassidy',
+    'Chance',
+    'Chandler',
+    'Cheyenne',
+    'Clay',
+    'Clint',
+    'Cody',
+    'Colt',
+    'Colton',
+    'Cord',
+    'Dallas',
+    'Dash',
+    'Deacon',
+    'Decker',
+    'Denver',
+    'Destry',
+    'Dexter',
+    'Dice',
+    'Dodge',
+    'Duke',
+    'Dusty',
+    'Dylan',
+    'Early',
+    'Flint',
+    'Gunner',
+    'Gus',
+    'Hank',
+    'Hawk',
+    'Heath',
+    'Hitch',
+    'Houston',
+    'Huck',
+    'Huckleberry',
+    'Jace',
+    'Jackson',
+    'Jeb',
+    'Jed',
+    'Jem',
+    'Jericho',
+    'Jesse',
+    'Josh',
+    'Judd',
+    'Judson',
+    'Justice',
+    'Kit',
+    'Laird',
+    'Landry',
+    'Levi',
+    'Luke',
+    'Mack',
+    'Maverick',
+    'Mccoy',
+    'Montana',
+    'Nash',
+    'Oakley',
+    'Otis',
+    'Phineas',
+    'Pistol',
+    'Quentin',
+    'Rancher',
+    'Ranger',
+    'Reeve',
+    'Remington',
+    'Remy',
+    'Reno',
+    'Rio',
+    'River',
+    'Romer',
+    'Roper',
+    'Roscoe',
+    'Rufus',
+    'Ryder',
+    'Rye',
+    'Sawyer',
+    'Shane',
+    'Shiloh',
+    'Silas',
+    'Stetson',
+    'Tex',
+    'Thatcher',
+    'Travis',
+    'Tripp',
+    'Ty',
+    'Wade',
+    'Walker',
+    'West',
+    'Westin',
+    'Weston',
+    'Wild',
+    'Wilder',
+    'Wyatt',
+    'Wylie',
+    'Yale',
+    'Zalman',
+    'Zane',
+    'Zeb'
+];
+
+export const LAST_NAMES = [
+    'Austin',
+    'Boone',
+    'Bowen',
+    'Bowie',
+    'Brody',
+    'Brooks',
+    'Buck',
+    'Calhoun',
+    'Carson',
+    'Casey',
+    'Cash',
+    'Cassidy',
+    'Clay',
+    'Cody',
+    'Colt',
+    'Colton',
+    'Cooper',
+    'Deacon',
+    'Decker',
+    'Denver',
+    'Dexter',
+    'Flint',
+    'Ford',
+    'Houston',
+    'Huckleberry',
+    'Jackson',
+    'Jones',
+    'Laird',
+    'Landry',
+    'Levi',
+    'Mccoy',
+    'Miller',
+    'Montana',
+    'Nash',
+    'Oakley',
+    'Rancher',
+    'Ranger',
+    'Reeve',
+    'Ryder',
+    'Rye',
+    'Sawyer',
+    'Smith',
+    'Stetson',
+    'Tex',
+    'Thatcher',
+    'Walker',
+    'West',
+    'Westin',
+    'Weston'
+];

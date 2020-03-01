@@ -6,6 +6,17 @@ const halfHeight = Math.floor(GAME_WINDOW_HEIGHT / 2);
 const widthOdd = GAME_WINDOW_WIDTH % 2 !== 0;
 const heightOdd = GAME_WINDOW_HEIGHT % 2 !== 0;
 
+const formatMoney = function(cents) {
+    if (cents < 100) {
+        return `${cents}\u00A2`;
+    }
+    return `$${cents/100}`;
+}
+
+const formatCards = function(cards) {
+    return cards.map(card => `%c{${card.getColor()}}%b{white}${card.toString()}%c{white}%b{black}`).join(' ');
+}
+
 export class View {
     constructor(game, display) {
         this.game = game;
@@ -15,7 +26,9 @@ export class View {
     }
 
     updateMouseCoords(coords) {
+        let diff = coords[0] !== this.mouseCoords[0] || coords[1] !== this.mouseCoords[1];
         this.mouseCoords = coords;
+        return diff;
     }
 
     getDisplayMouseCoords() {
@@ -33,6 +46,13 @@ export class View {
         return {
             x: coords.x + this.game.player.x - halfWidth,
             y: coords.y + this.game.player.y - halfHeight
+        };
+    }
+
+    mapCoordsToDisplayCoords(coords) {
+        return {
+            x: coords.x - this.game.player.x + halfWidth,
+            y: coords.y - this.game.player.y + halfHeight
         }
     }
 
@@ -54,6 +74,19 @@ export class View {
                 }
             }
         }
+        this.drawUtterances();
+        this.drawOverlay();
+    }
+
+    drawUtterances() {
+        this.game.characters.forEach(character => {
+            //console.log(character.name);
+            if (character.utterance) {
+                let speechCoords = this.mapCoordsToDisplayCoords({x: character.x, y: character.y});
+                this.display.draw(speechCoords.x + 1, speechCoords.y - 1, '/', 'black', 'white');
+                this.display.drawText(speechCoords.x, speechCoords.y - 2, '%c{black}%b{white}' + character.utterance);
+            }
+        });
     }
 
     drawOverlay() {
@@ -61,5 +94,27 @@ export class View {
         let mouseDisplay = this.getDisplayMouseCoords();
         this.display.drawText(0, 0, `Turn: ${this.game.turn} Player: ${this.game.player.x},${this.game.player.y}`);
         this.display.drawText(0, 1, `(Mouse) Map: ${mouseMap.x},${mouseMap.y} Display: ${mouseDisplay.x},${mouseDisplay.y}`);
+        this.drawTooltip();
+    }
+
+    drawTooltip() {
+        let mouseMap = this.getMapMouseCoords();
+        let mouseDisplay = this.getDisplayMouseCoords();
+
+        let characters = this.game.getCharacters(mouseMap.x, mouseMap.y);
+        if (characters.length) {
+            let character = characters[0];
+            this.display.drawText(mouseDisplay.x + 2, mouseDisplay.y, character.name);
+            this.display.drawText(mouseDisplay.x + 2, mouseDisplay.y + 1, formatMoney(character.cents));
+        }
+
+        let pokerGame = this.game.getPokerGame(mouseMap.x, mouseMap.y);
+        if (pokerGame) {
+            this.display.drawText(mouseDisplay.x + 2, mouseDisplay.y, 'Poker Game');
+            this.display.drawText(mouseDisplay.x + 2, mouseDisplay.y + 1, `Blinds: ${formatMoney(pokerGame.smallBlind)}/${formatMoney(pokerGame.bigBlind)}`);
+            this.display.drawText(mouseDisplay.x + 2, mouseDisplay.y + 2, `Pot: ${formatMoney(pokerGame.pot)}`);
+            this.display.drawText(mouseDisplay.x + 2, mouseDisplay.y + 3, `Common: ${formatCards(pokerGame.communityCards)}`);
+        }
+
     }
 }

@@ -48,8 +48,10 @@ export class Controller {
 
     handleMouseMove(event) {
         let coords = this.view.display.eventToPosition(event);
-        this.view.updateMouseCoords(coords);
-        this.view.drawOverlay();
+        let updated = this.view.updateMouseCoords(coords);
+        if (updated) {
+            this.view.drawMap();
+        }
     }
 
     handleMouseClick(event) {

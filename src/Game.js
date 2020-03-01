@@ -1,16 +1,19 @@
 import { Map } from './Map'
-import { Character } from './Character';
+import { PlayerCharacter, Scoundrel } from './Character';
 import { TILES } from './Constants';
+import { PokerGame } from './PokerGame';
 
 export class Game {
     constructor() {
         this.map = new Map();
-        this.player = new Character();
         this.turn = 0;
-
         this.characters = [];
+        this.pokerGames = [];
 
-        this.addCharacter(this.player, 15, 15);
+        this.player = new PlayerCharacter();
+        this.addCharacter(this.player, 15, 6);
+        this.addCharacter(new Scoundrel, -5, -6);
+        this.addPokerGame(-5, -5).flop();
 
     }
 
@@ -20,8 +23,18 @@ export class Game {
         character.y = y;
     }
 
+    addPokerGame(x, y) {
+        let pokerGame = new PokerGame(this, x, y);
+        this.pokerGames.push(pokerGame);
+        return pokerGame;
+    }
+
     getCharacters(x, y) {
         return this.characters.filter(c => c.x === x && c.y === y);
+    }
+
+    getPokerGame(x, y) {
+        return this.pokerGames.find(c => c.x === x && c.y === y);
     }
 
     getCellContents(x, y) {
@@ -55,6 +68,9 @@ export class Game {
 
     playTurn() {
         this.turn++;
+        this.characters.forEach(c => {
+            c.takeTurn();
+        });
     }
 
 }
