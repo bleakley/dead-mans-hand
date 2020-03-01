@@ -19,6 +19,16 @@ export function sampleFromSeed(seed, items) {
     return items[Math.floor(fromSeed(seed) * items.length)];
 }
 
+export const formatMoney = function(cents) {
+    if (cents === 0) {
+        return '$0';
+    }
+    if (cents < 100) {
+        return `${cents}\u00A2`;
+    }
+    return `$${cents/100}`;
+}
+
 export function valueToChar(value) {
     switch(value) {
         case 11:
@@ -44,30 +54,16 @@ export const CLUBS = next();
 export const DIAMONDS = next();
 export const SPADES = next();
 
-export function suitToChar(suit) {
+export function suitToChar(suit, forRanking) {
     switch(suit) {
         case SPADES:
-            return '\u2660';
+            return forRanking ? 'S' : '\u2660';
         case HEARTS:
-            return '\u2665';
+            return forRanking ? 'H' : '\u2665';
         case CLUBS:
-            return '\u2663';
+            return forRanking ? 'C' : '\u2663';
         case DIAMONDS:
-            return '\u2666';
-    }
-    return '?';
-}
-
-export function suitToRankingChar(suit) {
-    switch(suit) {
-        case SPADES:
-            return 'S';
-        case HEARTS:
-            return 'H';
-        case CLUBS:
-            return 'C';
-        case DIAMONDS:
-            return 'D';
+            return forRanking ? 'D' : '\u2666';
     }
     return '?';
 }

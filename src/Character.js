@@ -63,8 +63,9 @@ export class Character {
 
     join(pokerGame) {
         this.say(`I'm joining this game.`);
-        pokerGame.addPlayer(this);
+        let p = pokerGame.addPlayer(this);
         this.activePokerGame = pokerGame;
+        pokerGame.getNextPlayer(p);
     }
 
     say(utterance) {

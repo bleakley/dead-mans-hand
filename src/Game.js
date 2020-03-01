@@ -12,9 +12,14 @@ export class Game {
 
         this.player = new PlayerCharacter();
         this.addCharacter(this.player, 15, 6);
-        let npc = this.addCharacter(new Scoundrel, -5, -6);
+        let npc = this.addCharacter(new Scoundrel(), -5, -6);
+        let npc2 = this.addCharacter(new Scoundrel(), -6, -5);
+        let npc3 = this.addCharacter(new Scoundrel(), -4, -4);
+
         let poker = this.addPokerGame(-5, -5);
         npc.join(poker);
+        npc2.join(poker);
+        npc3.join(poker);
     }
 
     addCharacter(character, x, y) {
@@ -87,6 +92,10 @@ export class Game {
             if (c.isNPC) {
                 c.takeTurn();
             }
+        });
+
+        this.pokerGames.forEach(g => {
+            g.tick();
         });
     }
 

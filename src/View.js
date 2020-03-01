@@ -1,17 +1,10 @@
-import { GAME_WINDOW_WIDTH, GAME_WINDOW_HEIGHT, TILES } from './Constants';
+import { GAME_WINDOW_WIDTH, GAME_WINDOW_HEIGHT, TILES, formatMoney } from './Constants';
 import _ from 'lodash';
 
 const halfWidth = Math.floor(GAME_WINDOW_WIDTH / 2);
 const halfHeight = Math.floor(GAME_WINDOW_HEIGHT / 2);
 const widthOdd = GAME_WINDOW_WIDTH % 2 !== 0;
 const heightOdd = GAME_WINDOW_HEIGHT % 2 !== 0;
-
-const formatMoney = function(cents) {
-    if (cents < 100) {
-        return `${cents}\u00A2`;
-    }
-    return `$${cents/100}`;
-}
 
 const formatCards = function(cards) {
     return cards.map(card => `%c{${card.getColor()}}%b{white}${card.toString()}%c{white}%b{black}`).join(' ');
@@ -79,7 +72,10 @@ export class View {
     }
 
     drawUtterances() {
-        this.game.characters.forEach(character => {
+        let mouseMap = this.getMapMouseCoords();
+        let characters = this.game.getCharacters(mouseMap.x, mouseMap.y);
+
+        (characters.length ? characters : this.game.characters).forEach(character => {
             if (character.utterance) {
                 let speechCoords = this.mapCoordsToDisplayCoords({x: character.x, y: character.y});
                 this.display.draw(speechCoords.x + 1, speechCoords.y - 1, '/', 'black', 'white');
@@ -114,7 +110,7 @@ export class View {
         if (pokerGame) {
             this.display.drawText(mouseDisplay.x + 2, mouseDisplay.y, 'Poker Game');
             this.display.drawText(mouseDisplay.x + 2, mouseDisplay.y + 1, `Blinds: ${formatMoney(pokerGame.smallBlind)}/${formatMoney(pokerGame.bigBlind)}`);
-            this.display.drawText(mouseDisplay.x + 2, mouseDisplay.y + 2, `Pot: ${formatMoney(pokerGame.pot)}`);
+            this.display.drawText(mouseDisplay.x + 2, mouseDisplay.y + 2, `Pot: ${formatMoney(pokerGame.getPot())}`);
             this.display.drawText(mouseDisplay.x + 2, mouseDisplay.y + 3, `Common: ${formatCards(pokerGame.communityCards)}`);
         }
 

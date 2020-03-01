@@ -16,7 +16,7 @@ export class Controller {
     }
 
     handleKeyDown(event) {
-        //console.log(event.keyCode);
+        console.log(event.keyCode);
         switch (event.keyCode) {
             case 32: // space
                 this.game.playerPasses();
@@ -45,6 +45,16 @@ export class Controller {
             case 40:
                 this.game.movePlayer(0, 1);
                 break;
+            case 70: // f
+                //this.game.playerFolds();
+                break;
+            case 67: // c
+                //this.game.playerChecks();
+                break;
+            case 82: // r
+                //this.game.playerRaises();
+                break;
+
         }
         this.view.drawMap();
         this.view.drawOverlay();
