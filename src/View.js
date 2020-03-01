@@ -80,7 +80,6 @@ export class View {
 
     drawUtterances() {
         this.game.characters.forEach(character => {
-            //console.log(character.name);
             if (character.utterance) {
                 let speechCoords = this.mapCoordsToDisplayCoords({x: character.x, y: character.y});
                 this.display.draw(speechCoords.x + 1, speechCoords.y - 1, '/', 'black', 'white');
@@ -104,8 +103,11 @@ export class View {
         let characters = this.game.getCharacters(mouseMap.x, mouseMap.y);
         if (characters.length) {
             let character = characters[0];
-            this.display.drawText(mouseDisplay.x + 2, mouseDisplay.y, character.name);
-            this.display.drawText(mouseDisplay.x + 2, mouseDisplay.y + 1, formatMoney(character.cents));
+            this.display.drawText(mouseDisplay.x + 2, mouseDisplay.y + 0, character.name);
+            this.display.drawText(mouseDisplay.x + 2, mouseDisplay.y + 1, `Health: ${character.health}/${character.getMaxHealth()}`);
+            this.display.drawText(mouseDisplay.x + 2, mouseDisplay.y + 2, `Vigilance: ${character.vigilance}/${character.getMaxVigilance()}`);
+            this.display.drawText(mouseDisplay.x + 2, mouseDisplay.y + 3, `Subterfuge: ${character.isPC ? character.subterfuge : '?'}/${character.getMaxSubterfuge()}`);
+            this.display.drawText(mouseDisplay.x + 2, mouseDisplay.y + 4, formatMoney(character.cents));
         }
 
         let pokerGame = this.game.getPokerGame(mouseMap.x, mouseMap.y);

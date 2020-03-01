@@ -6,6 +6,8 @@ export class Character {
         this.name = 'Stranger';
         this.symbol = '@';
         this.color = 'white';
+        this.isPC = false;
+        this.isNPC = true;
 
         this.cents = 0;
         this.level = level;
@@ -28,6 +30,7 @@ export class Character {
         this.opinionOfPC = 0;
 
         this.utterance = '';
+        this.activePokerGame = null;
     }
 
     getDisplayChar() {
@@ -49,8 +52,30 @@ export class Character {
         return this.guile + this.quickness + this.cunning;
     }
 
+    startTurn() {
+        this.utterance = '';
+    }
+
     takeTurn() {
-        this.utterance = _.sample(['', '', '', '', '*whistle*', '*cough*']);
+        this.startTurn();
+        this.wait();
+    }
+
+    join(pokerGame) {
+        this.say(`I'm joining this game.`);
+        pokerGame.addPlayer(this);
+        this.activePokerGame = pokerGame;
+    }
+
+    say(utterance) {
+        this.utterance = utterance;
+    }
+
+    wait() {
+        if (this.vigilance < this.getMaxVigilance()) {
+            this.vigilance++;
+        }
+        this.say(_.sample(['', '', '', '', '*whistle*', '*cough*']));
     }
 
 }
@@ -60,6 +85,8 @@ export class PlayerCharacter extends Character {
         super(0, 0, 0, 0, 0, 0);
         this.name = 'Rodney';
         this.cents = 200;
+        this.isPC = true;
+        this.isNPC = false;
     }
 }
 

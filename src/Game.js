@@ -12,15 +12,16 @@ export class Game {
 
         this.player = new PlayerCharacter();
         this.addCharacter(this.player, 15, 6);
-        this.addCharacter(new Scoundrel, -5, -6);
-        this.addPokerGame(-5, -5).flop();
-
+        let npc = this.addCharacter(new Scoundrel, -5, -6);
+        let poker = this.addPokerGame(-5, -5);
+        npc.join(poker);
     }
 
     addCharacter(character, x, y) {
         this.characters.push(character);
         character.x = x;
         character.y = y;
+        return character;
     }
 
     addPokerGame(x, y) {
@@ -58,18 +59,34 @@ export class Game {
         let newX = this.player.x + dx;
         let newY = this.player.y + dy;
 
+        if (this.player.activePokerGame) {
+            return false;
+        }
+
         if (this.spaceIsPassable(newX, newY)) {
+            this.player.startTurn();
             this.player.x = newX;
             this.player.y = newY;
             this.playTurn();
+        } else if (this.getPokerGame(newX, newY)) {
+            this.player.startTurn();
+            this.player.join(this.getPokerGame(newX, newY));
+            this.playTurn();
         }
+    }
 
+    playerPasses() {
+        this.player.startTurn();
+        this.player.wait();
+        this.playTurn();
     }
 
     playTurn() {
         this.turn++;
         this.characters.forEach(c => {
-            c.takeTurn();
+            if (c.isNPC) {
+                c.takeTurn();
+            }
         });
     }
 

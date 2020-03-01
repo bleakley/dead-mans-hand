@@ -16,7 +16,11 @@ export class Controller {
     }
 
     handleKeyDown(event) {
+        //console.log(event.keyCode);
         switch (event.keyCode) {
+            case 32: // space
+                this.game.playerPasses();
+                break;
             case 33:
                 this.game.movePlayer(1, -1);
                 break;
