@@ -1,5 +1,6 @@
 import { HEARTS, DIAMONDS, SPADES, CLUBS, valueToChar, suitToChar, formatMoney } from "./Constants";
 import { evaluateAndFindCards } from 'poker-ranking';
+import analyze from './HandAnalyzer';
 
 export class PokerGame {
     constructor(rootGame, x, y) {
@@ -84,7 +85,10 @@ export class PokerGame {
     }
 
     allPlayersHaveActed() {
-        return this.players.filter(p => p.inCurrentHand && !p.isAllIn()).every(p => p.hasTakenActionSinceLastRaise);
+        if (this.round < 5) {
+            return this.players.filter(p => p.inCurrentHand && !p.isAllIn()).every(p => p.hasTakenActionSinceLastRaise);
+        }
+        return this.players.filter(p => p.inCurrentHand).every(p => p.cardsRevealed || p.cardsMucked);
     }
 
     start() {
@@ -105,37 +109,38 @@ export class PokerGame {
 
     flop() {
         this.round = 2;
-        this.dealer.character.say('The flop.');
         this.players.map(p => p.hasTakenActionSinceLastRaise = false);
-        this.communityCards.push(this.deck.draw());
-        this.communityCards.push(this.deck.draw());
-        this.communityCards.push(this.deck.draw());
+        let cards = [this.deck.draw(), this.deck.draw(), this.deck.draw()];
+        this.communityCards.push(...cards);
         this.activePlayer = this.getNextPlayer(this.dealer);
         this.lastPlayerToBet = null;
+        this.dealer.character.say(`${_.capitalize(cards.map(c => c.getSpokenName()).join(', '))} on the flop.`);
     }
 
     turn() {
         this.round = 3;
-        this.dealer.character.say('The turn.');
         this.players.map(p => p.hasTakenActionSinceLastRaise = false);
-        this.communityCards.push(this.deck.draw());
+        let card = this.deck.draw();
+        this.communityCards.push(card);
         this.activePlayer = this.getNextPlayer(this.dealer);
         this.lastPlayerToBet = null;
+        this.dealer.character.say(`${_.capitalize(card.getSpokenName())} on the turn.`);
     }
 
     river() {
         this.round = 4;
-        this.dealer.character.say('The river.');
         this.players.map(p => p.hasTakenActionSinceLastRaise = false);
-        this.communityCards.push(this.deck.draw());
+        let card = this.deck.draw();
+        this.communityCards.push(card);
         this.activePlayer = this.getNextPlayer(this.dealer);
         this.lastPlayerToBet = null;
+        this.dealer.character.say(`${_.capitalize(card.getSpokenName())} on the river.`);
     }
 
     reveal() {
         this.round = 5;
         this.dealer.character.say('Show your cards!');
-        this.players.map(p => p.revealCards());
+        this.activePlayer = this.getNextPlayer(this.dealer);
     }
 
 }
@@ -151,6 +156,7 @@ class Player {
         this.inCurrentHand = false;
         this.hasTakenActionSinceLastRaise = false;
         this.cardsRevealed = false;
+        this.cardsMucked = false;
     }
 
     isDealer() {
@@ -170,7 +176,7 @@ class Player {
     }
 
     bestHand() {
-        return evaluateAndFindCards(this.hole.concat(this.game.communityCards).map(card => card.toRankingString()));
+        return analyze(this.hole, this.game.communityCards);
     }
 
     takeCard(card) {
@@ -188,6 +194,9 @@ class Player {
     }
 
     play() {
+        if (this.game.round === 5 && !this.cardsRevealed && !this.cardsMucked) {
+            return this.revealCards();
+        }
         if (this.isAllIn() || this.isMatchingHighestBet()) {
             this.check();
         } else {
@@ -217,8 +226,14 @@ class Player {
 
     revealCards() {
         this.cardsRevealed = true;
-        let bestHand = this.bestHand();
-        this.character.say(`${_.capitalize(bestHand.match)}.`);
+        let hand = this.bestHand();
+        this.character.say(`${_.capitalize(hand.match)}.`);
+        console.log(hand);
+    }
+
+    muckCards() {
+        this.cardsMucked = true;
+        this.character.say(`Nothin'.`);
     }
 }
 
@@ -262,6 +277,37 @@ class Card {
 
     toRankingString() {
         return `${valueToChar(this.value)}${suitToChar(this.suit, true)}`;
+    }
+
+    getSpokenName() {
+        switch(this.value) {
+            case 2:
+                return 'two';
+            case 3:
+                return 'three';
+            case 4:
+                return 'four';
+            case 5:
+                return 'five';
+            case 6:
+                return 'six';
+            case 7:
+                return 'seven';
+            case 8:
+                return 'eight';
+            case 9:
+                return 'nine';
+            case 10:
+                return 'ten';
+            case 11:
+                return 'jack';
+            case 12:
+                return 'queen';
+            case 13:
+                return 'king';
+            case 14:
+                return 'ace';
+        }
     }
 
     getColor() {

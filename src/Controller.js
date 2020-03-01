@@ -16,7 +16,7 @@ export class Controller {
     }
 
     handleKeyDown(event) {
-        console.log(event.keyCode);
+        //console.log(event.keyCode);
         switch (event.keyCode) {
             case 32: // space
                 this.game.playerPasses();
@@ -70,7 +70,7 @@ export class Controller {
 
     handleMouseClick(event) {
         let coords = this.view.display.eventToPosition(event);
-        console.log('You clicked ' + coords);
+        //console.log('You clicked ' + coords);
     }
 
 }

@@ -75,7 +75,7 @@ export class Character {
         if (this.vigilance < this.getMaxVigilance()) {
             this.vigilance++;
         }
-        this.say(_.sample(['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '*whistle*', '*cough*']));
+        this.say(_.sample(['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '*whistle*', '*cough*']));
     }
 
 }
