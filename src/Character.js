@@ -30,7 +30,7 @@ export class Character {
         this.opinionOfPC = 0;
 
         this.utterance = '';
-        this.activePokerGame = null;
+        this.activePokerPlayerRole = null;
     }
 
     getDisplayChar() {
@@ -64,8 +64,7 @@ export class Character {
     join(pokerGame) {
         this.say(`I'm joining this game.`);
         let p = pokerGame.addPlayer(this);
-        this.activePokerGame = pokerGame;
-        pokerGame.getNextPlayer(p);
+        this.activePokerPlayerRole = p;
     }
 
     say(utterance) {
@@ -76,7 +75,7 @@ export class Character {
         if (this.vigilance < this.getMaxVigilance()) {
             this.vigilance++;
         }
-        this.say(_.sample(['', '', '', '', '*whistle*', '*cough*']));
+        this.say(_.sample(['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '*whistle*', '*cough*']));
     }
 
 }
