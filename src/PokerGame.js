@@ -18,6 +18,8 @@ export class PokerGame {
         this.smallBlind = 100;
         this.bigBlind = 200;
 
+        this.unclaimedMoneyOnTable = 0;
+
         this.deck = new Deck();
         this.communityCards = [];
 
@@ -149,8 +151,54 @@ export class PokerGame {
     dividePot() {
         this.round = 6;
         let winners = this.players.filter(p => compareHands(this.winningHand, p.bestHand()) === 0);
-        console.log(winners);
         winners.map(p => p.character.say('I win!'));
+
+        let undividedMoney = 0;
+        this.players.forEach(p => {
+            undividedMoney += p.currentBet;
+            p.character.cents -= p.currentBet;
+            p.stake = p.currentBet;
+        });
+
+        let pots = [];
+
+        let unassignedPlayers = this.players.sort((a, b) => a.stake - b.stake);
+        
+        do {
+            let smallestBetPlayers = unassignedPlayers.filter(p => p.stake === unassignedPlayers[0].stake);
+            let eachPlayersContribution = smallestBetPlayers[0].stake;
+            pots.push({ contestedBy: [...unassignedPlayers], amount: eachPlayersContribution * unassignedPlayers.length });
+            unassignedPlayers = _.difference(unassignedPlayers, smallestBetPlayers).sort((a, b) => a.stake - b.stake);
+            unassignedPlayers.map(p => p.stake -= eachPlayersContribution);
+        } while (unassignedPlayers.length);
+
+        pots.forEach(pot => {
+            let bestHandInPot = { comboRank: -1 };
+            pot.contestedBy.forEach(p => {
+                let hand = p.bestHand();
+                if (compareHands(hand, bestHandInPot) <= 0) {
+                    bestHandInPot = hand;
+                }
+            });
+            let potWinners = pot.contestedBy.filter(p => compareHands(bestHandInPot, p.bestHand()) === 0);
+            potWinners.map(p => p.currentWinnings += Math.floor(pot.amount / potWinners.length));
+        });
+
+        console.log(pots);
+
+        let moneyReturnedToPlayers = 0;
+        this.players.forEach(p => {
+            p.character.cents += p.currentWinnings;
+            moneyReturnedToPlayers += p.currentWinnings;
+            console.log(`${p.character.name} gets ${formatMoney(p.currentWinnings)} from the pot.`);
+        });
+
+        let excess = undividedMoney - moneyReturnedToPlayers;
+        this.unclaimedMoneyOnTable += excess;
+        console.log(`${formatMoney(excess)} is left on the table.`);
+
+        // clean up at end of hand, start a new hand
+
     }
 
 }
@@ -159,6 +207,9 @@ class Player {
     constructor(game, character) {
         this.game = game;
         this.character = character;
+
+        this.currentWinnings = 0;
+        this.stake = 0;
 
         this.currentBet = 0;
         this.hole = [];
