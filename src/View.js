@@ -1,4 +1,4 @@
-import { GAME_WINDOW_WIDTH, GAME_WINDOW_HEIGHT, TILES, formatMoney } from './Constants';
+import { GAME_WINDOW_WIDTH, GAME_WINDOW_HEIGHT, SIDEBAR_WIDTH, TILES, RANGE_POINT_BLANK, RANGE_CLOSE, RANGE_MEDIUM, RANGE_LONG, formatMoney } from './Constants';
 import _ from 'lodash';
 
 const halfWidth = Math.floor(GAME_WINDOW_WIDTH / 2);
@@ -6,7 +6,7 @@ const halfHeight = Math.floor(GAME_WINDOW_HEIGHT / 2);
 const widthOdd = GAME_WINDOW_WIDTH % 2 !== 0;
 const heightOdd = GAME_WINDOW_HEIGHT % 2 !== 0;
 
-const formatCards = function(cards, hidden=false) {
+const formatCards = function (cards, hidden = false) {
     return cards.map(card => `%c{${hidden ? 'black' : card.getColor()}}%b{white}${hidden ? '??' : card.toString()}%c{white}%b{black}`).join(' ');
 }
 
@@ -16,12 +16,79 @@ export class View {
         this.display = display;
 
         this.mouseCoords = [0, 0];
+        this.cursorCoords = [0, 0];
+        this.showCursor = false;
+
+        this.showInventory = false;
+        this.inventoryCursor = 0;
+    }
+
+    clearControls() {
+        this.showCursor = false;
+        this.showInventory = false;
+    }
+
+    toggleInventory() {
+        this.showInventory = !this.showInventory;
+    }
+
+    moveCursor(dx, dy) {
+        this.cursorCoords = [this.cursorCoords[0] + dx, this.cursorCoords[1] + dy];
+    }
+
+    moveInventoryCursor(dy) {
+        this.inventoryCursor += dy;
+        if (this.inventoryCursor >= this.game.player.inventory.length) {
+            this.inventoryCursor = 0;
+        }
+
+        if (this.inventoryCursor < 0) {
+            this.inventoryCursor = this.game.player.inventory.length - 1;
+        }
+    }
+
+    cycleTargets() {
+        if (this.showCursor) {
+            let possibleTargets = this.game.characters.filter(c => c.isNPC).sort((a, b) => a.distanceBetween(this.game.player) - b.distanceBetween(this.game.player));
+            let cursorCoordsOnMap = this.getMapCursorCoords();
+            let currentTargetedCharacters = this.game.getCharacters(cursorCoordsOnMap.x, cursorCoordsOnMap.y);
+            if (currentTargetedCharacters.length) {
+                let nextTarget = possibleTargets[possibleTargets.indexOf(currentTargetedCharacters[0]) + 1];
+                if (!nextTarget) {
+                    nextTarget = possibleTargets[0];
+                }
+                this.cursorCoords = this.coordsToArray(this.mapCoordsToDisplayCoords({ x: nextTarget.x, y: nextTarget.y }));
+            } else if (possibleTargets.length) {
+                this.cursorCoords = this.coordsToArray(this.mapCoordsToDisplayCoords({ x: possibleTargets[0].x, y: possibleTargets[0].y }));
+            }
+        } else {
+            let possibleTargets = this.game.characters.filter(c => c.isNPC).sort((a, b) => a.distanceBetween(this.game.player) - b.distanceBetween(this.game.player));
+            if (possibleTargets) {
+                this.cursorCoords = this.coordsToArray(this.mapCoordsToDisplayCoords({ x: possibleTargets[0].x, y: possibleTargets[0].y }));
+            }
+        }
+
+        this.showCursor = true;
     }
 
     updateMouseCoords(coords) {
         let diff = coords[0] !== this.mouseCoords[0] || coords[1] !== this.mouseCoords[1];
-        this.mouseCoords = coords;
+        if (diff) {
+            this.mouseCoords = coords;
+            this.cursorCoords = coords;
+        }
         return diff;
+    }
+
+    getDisplayCursorCoords() {
+        return {
+            x: this.cursorCoords[0],
+            y: this.cursorCoords[1]
+        }
+    }
+
+    getMapCursorCoords() {
+        return this.displayCoordsToMapCoords(this.getDisplayCursorCoords());
     }
 
     getDisplayMouseCoords() {
@@ -49,6 +116,18 @@ export class View {
         }
     }
 
+    coordsToArray(coords) {
+        return [coords.x, coords.y];
+    }
+
+    drawCursor() {
+        if (!this.showCursor) {
+            return;
+        }
+        let { x: displayX, y: displayY } = this.getDisplayCursorCoords();
+        this.display.draw(displayX, displayY, 'X', 'red', 'black');
+    }
+
     drawMap() {
 
         for (let x = -halfWidth; x < halfWidth + widthOdd ? 1 : 0; x++) {
@@ -67,19 +146,114 @@ export class View {
                 }
             }
         }
+
+        if (this.showInventory) {
+            this.clearSidebar();
+            this.drawInventory();
+        } else {
+            this.clearSidebar();
+            this.drawSidebar();
+        }
         this.drawUtterances();
         this.drawOverlay();
+        this.drawCursor();
     }
 
     drawUtterances() {
-        let mouseMap = this.getMapMouseCoords();
-        let characters = this.game.getCharacters(mouseMap.x, mouseMap.y);
+        let mapCoords = this.showCursor ? this.getMapCursorCoords() : this.getMapMouseCoords();
+        let characters = this.game.getCharacters(mapCoords.x, mapCoords.y);
 
         (characters.length ? characters : this.game.characters).forEach(character => {
             if (character.utterance) {
-                let speechCoords = this.mapCoordsToDisplayCoords({x: character.x, y: character.y});
+                let speechCoords = this.mapCoordsToDisplayCoords({ x: character.x, y: character.y });
                 this.display.draw(speechCoords.x + 1, speechCoords.y - 1, '/', 'black', 'white');
                 this.display.drawText(speechCoords.x, speechCoords.y - 2, '%c{black}%b{white}' + character.utterance);
+            }
+        });
+    }
+
+    clearSidebar() {
+        for (let x = 0; x < SIDEBAR_WIDTH; x++) {
+            for (let y = 0; y < GAME_WINDOW_HEIGHT; y++) {
+                this.display.draw(GAME_WINDOW_WIDTH + x, y, ' ');
+            }
+        }
+    }
+
+    drawSidebar() {
+        let sidebarX = GAME_WINDOW_WIDTH + 1;
+        let character = this.game.player;
+        this.drawSidebarRow(0, character.name);
+
+        this.drawSidebarRow(2, 'Health:', `${character.health}/${character.getMaxHealth()}`);
+        this.drawSidebarRow(3, 'Vigilance:', `${character.vigilance}/${character.getMaxVigilance()}`);
+        this.drawSidebarRow(4, 'Subterfuge:', `${character.isPC ? character.subterfuge : '?'}/${character.getMaxSubterfuge()}`);
+        this.drawSidebarRow(5, 'Money:', formatMoney(character.cents));
+
+        this.drawSidebarRow(7, 'Level ' + character.level, character.xp + ' xp');
+        this.drawSidebarRow(8, 'Strength', character.strength);
+        this.drawSidebarRow(9, 'Quickness', character.quickness);
+        this.drawSidebarRow(10, 'Cunning', character.cunning);
+        this.drawSidebarRow(11, 'Guile', character.guile);
+        this.drawSidebarRow(12, 'Grit', character.grit);
+
+        let weapon = character.getCurrentWeapon();
+        this.drawWeaponSidebarRow(14, weapon);
+        this.drawWeaponStatblock(15, weapon);
+    }
+
+    drawWeaponSidebarRow(y, weapon, highlighted = false) {
+        let ammoString = weapon.isMelee ? '[\u221E]' : `[${weapon.currentAmmo}/${weapon.capacity}]`;
+        this.drawSidebarRow(y, _.capitalize(weapon.name), ammoString, highlighted);
+    }
+
+    drawSidebarRow(y, leftCol = '', rightCol = '', highlighted) {
+        let padding = SIDEBAR_WIDTH - String(leftCol).length - String(rightCol).length - 2;
+        this.display.drawText(GAME_WINDOW_WIDTH + 1, y, (highlighted ? '%c{white}' : '') + String(leftCol) + _.repeat(' ', padding) + String(rightCol));
+    }
+
+    drawWeaponStatblock(y, weapon) {
+        let damage = this.game.player.getDamageWithWeapon(weapon);
+        this.drawSidebarRow(y, weapon.description);
+        this.drawSidebarRow(y + 1, 'Draw speed:', `${weapon.drawSpeed}`);
+        this.drawSidebarRow(y + 2, 'Damage:', damage.min === damage.max ? damage.min : `${damage.min}-${damage.max}`);
+        this.drawSidebarRow(y + 3, 'Range:', weapon.isMelee ? 'Melee' : `[${[
+            weapon.rangeModifiers[RANGE_POINT_BLANK],
+            weapon.rangeModifiers[RANGE_CLOSE],
+            weapon.rangeModifiers[RANGE_MEDIUM],
+            weapon.rangeModifiers[RANGE_LONG]
+        ].join('/')}]`);
+    }
+
+    drawInventory() {
+        let character = this.game.player;
+        this.drawSidebarRow(0, 'Inventory');
+
+        this.drawSidebarRow(2, 'Wielding:');
+        this.drawWeaponSidebarRow(3, character.getCurrentWeapon());
+
+        this.drawSidebarRow(5, 'Money:', formatMoney(character.cents));
+        this.drawSidebarRow(6, 'Bullets:', character.bullets);
+        this.drawSidebarRow(7, 'Buckshot:', character.buckshot);
+        this.drawSidebarRow(8, 'Arrows:', character.arrows);
+
+        let selectedItem = character.inventory[this.inventoryCursor];
+        if (selectedItem) {
+            if (selectedItem.isWeapon) {
+                this.drawWeaponSidebarRow(10, selectedItem, true);
+                this.drawWeaponStatblock(11, selectedItem);
+            } else {
+                this.drawSidebarRow(10, _.capitalize(selectedItem.name), '', true);
+                this.drawSidebarRow(11, selectedItem.description);
+            }
+        }
+
+        let startListAt = 16;
+        character.inventory.forEach((item, i) => {
+            if (item.isWeapon) {
+                this.drawWeaponSidebarRow(startListAt + i, item, item === selectedItem);
+            } else {
+                this.drawSidebarRow(startListAt + i, _.capitalize(item.name), '', item === selectedItem);
             }
         });
     }
@@ -93,30 +267,30 @@ export class View {
     }
 
     drawTooltip() {
-        let mouseMap = this.getMapMouseCoords();
-        let mouseDisplay = this.getDisplayMouseCoords();
+        let mapCoords = this.showCursor ? this.getMapCursorCoords() : this.getMapMouseCoords();
+        let displayCoords = this.showCursor ? this.getDisplayCursorCoords() : this.getDisplayMouseCoords();
 
-        let characters = this.game.getCharacters(mouseMap.x, mouseMap.y);
+        let characters = this.game.getCharacters(mapCoords.x, mapCoords.y);
         if (characters.length) {
             let character = characters[0];
-            this.display.drawText(mouseDisplay.x + 2, mouseDisplay.y + 0, character.name);
-            this.display.drawText(mouseDisplay.x + 2, mouseDisplay.y + 1, `Health: ${character.health}/${character.getMaxHealth()}`);
-            this.display.drawText(mouseDisplay.x + 2, mouseDisplay.y + 2, `Vigilance: ${character.vigilance}/${character.getMaxVigilance()}`);
-            this.display.drawText(mouseDisplay.x + 2, mouseDisplay.y + 3, `Subterfuge: ${character.isPC ? character.subterfuge : '?'}/${character.getMaxSubterfuge()}`);
-            this.display.drawText(mouseDisplay.x + 2, mouseDisplay.y + 4, `Money: ${formatMoney(character.cents)}`);
+            this.display.drawText(displayCoords.x + 2, displayCoords.y + 0, character.name);
+            this.display.drawText(displayCoords.x + 2, displayCoords.y + 1, `Health: ${character.health}/${character.getMaxHealth()}`);
+            this.display.drawText(displayCoords.x + 2, displayCoords.y + 2, `Vigilance: ${character.vigilance}/${character.getMaxVigilance()}`);
+            this.display.drawText(displayCoords.x + 2, displayCoords.y + 3, `Subterfuge: ${character.isPC ? character.subterfuge : '?'}/${character.getMaxSubterfuge()}`);
+            this.display.drawText(displayCoords.x + 2, displayCoords.y + 4, `Money: ${formatMoney(character.cents)}`);
             if (character.activePokerPlayerRole) {
-                this.display.drawText(mouseDisplay.x + 2, mouseDisplay.y + 5, `Current bet: ${formatMoney(character.activePokerPlayerRole.currentBet)}`);
+                this.display.drawText(displayCoords.x + 2, displayCoords.y + 5, `Current bet: ${formatMoney(character.activePokerPlayerRole.currentBet)}`);
                 let cardsVisible = character.isPC || character.activePokerPlayerRole.cardsRevealed;
-                this.display.drawText(mouseDisplay.x + 2, mouseDisplay.y + 6, `Hole cards: ${formatCards(character.activePokerPlayerRole.hole, !cardsVisible)}`);
+                this.display.drawText(displayCoords.x + 2, displayCoords.y + 6, `Hole cards: ${formatCards(character.activePokerPlayerRole.hole, !cardsVisible)}`);
             }
         }
 
-        let pokerGame = this.game.getPokerGame(mouseMap.x, mouseMap.y);
+        let pokerGame = this.game.getPokerGame(mapCoords.x, mapCoords.y);
         if (pokerGame) {
-            this.display.drawText(mouseDisplay.x + 2, mouseDisplay.y, 'Poker Game');
-            this.display.drawText(mouseDisplay.x + 2, mouseDisplay.y + 1, `Blinds: ${formatMoney(pokerGame.smallBlind)}/${formatMoney(pokerGame.bigBlind)}`);
-            this.display.drawText(mouseDisplay.x + 2, mouseDisplay.y + 2, `Pot: ${formatMoney(pokerGame.getPot())}`);
-            this.display.drawText(mouseDisplay.x + 2, mouseDisplay.y + 3, `Common: ${formatCards(pokerGame.communityCards)}`);
+            this.display.drawText(displayCoords.x + 2, displayCoords.y, 'Poker Game');
+            this.display.drawText(displayCoords.x + 2, displayCoords.y + 1, `Blinds: ${formatMoney(pokerGame.smallBlind)}/${formatMoney(pokerGame.bigBlind)}`);
+            this.display.drawText(displayCoords.x + 2, displayCoords.y + 2, `Pot: ${formatMoney(pokerGame.getPot())}`);
+            this.display.drawText(displayCoords.x + 2, displayCoords.y + 3, `Common: ${formatCards(pokerGame.communityCards)}`);
         }
 
     }

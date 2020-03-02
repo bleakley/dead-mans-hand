@@ -1,5 +1,5 @@
-import { MALE_NAMES, LAST_NAMES } from "./Constants";
-import { PokerGame } from "./PokerGame";
+import { MALE_NAMES, LAST_NAMES, RANGE_POINT_BLANK, RANGE_CLOSE, RANGE_MEDIUM, RANGE_LONG } from "./Constants";
+import { Fist, Revolver, Knife, CanOfBeans } from "./Item";
 
 export class Character {
     constructor(level, strength, quickness, cunning, guile, grit) {
@@ -10,7 +10,15 @@ export class Character {
         this.isNPC = true;
 
         this.cents = 0;
+        this.bullets = 0;
+        this.buckshot = 0;
+        this.arrows = 0;
+        this.inventory = [];
+        this.equippedWeapon = null;
+        this.naturalWeapon = new Fist();
+
         this.level = level;
+        this.xp = 0;
 
         this.strength = strength;
         this.quickness = quickness;
@@ -52,6 +60,18 @@ export class Character {
         return this.guile + this.quickness + this.cunning;
     }
 
+    getMeleeAttack() {
+        return this.level + this.quickness + this.strength;
+    }
+
+    getRangedAttack() {
+        return this.level + this.quickness + this.grit;
+    }
+
+    getDefense() {
+        return Math.floor(this.level / 2) + this.grit;
+    }
+
     startTurn() {
         this.utterance = '';
     }
@@ -78,6 +98,38 @@ export class Character {
         this.say(_.sample(['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '*whistle*', '*cough*']));
     }
 
+    getCurrentWeapon() {
+        return this.equippedWeapon || this.naturalWeapon;
+    }
+
+    getDamageWithWeapon(weapon) {
+        let min = weapon.minDamage;
+        let max = weapon.maxDamageAttributes.reduce((prev, curr) => prev + this[curr], weapon.maxDamageBase);
+        max = Math.max(min, max);
+        return { min, max };
+    }
+
+    attack(target) {
+        let weapon = getCurrentWeapon();
+        let distance = this.distanceBetween(target);
+        let range = [RANGE_POINT_BLANK, RANGE_CLOSE, RANGE_MEDIUM, RANGE_LONG].find(r => distance >= r.min && distance <= r.max);
+        if (range > weapon.maximumRange) {
+            console.log('out of range');
+            return false;
+        }
+
+        let attackBonus = (weapon.isMelee ? this.getMeleeAttack() : this.getRangedAttack()) + weapon.rangeModifiers[range];
+        let attackRoll = _.random(1, 20);
+        let total = attackBonus + attackRoll;
+        let ac = target.getDefense();
+        let hit = total >= ac;
+        console.log(`${this.name} attacks ${target.name} with his ${weapon.name}. [${attackRoll}] + ${attackBonus} vs ${ac} : ${hit ? 'Hit' : 'Miss'}!`);
+    }
+
+    distanceBetween(other) {
+        return Math.max(Math.abs(this.x - other.x), Math.abs(this.y - other.y));
+    }
+
 }
 
 export class PlayerCharacter extends Character {
@@ -87,6 +139,11 @@ export class PlayerCharacter extends Character {
         this.cents = 200;
         this.isPC = true;
         this.isNPC = false;
+        this.bullets = 50;
+
+        this.inventory.push(new Revolver());
+        this.inventory.push(new Knife());
+        this.inventory.push(new CanOfBeans());
     }
 }
 

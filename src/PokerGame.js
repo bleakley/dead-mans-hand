@@ -1,5 +1,5 @@
 import { HEARTS, DIAMONDS, SPADES, CLUBS, valueToChar, suitToChar, formatMoney } from "./Constants";
-import { analyzeHand, compareHands } from './HandAnalyzer';
+import { analyzeHand, compareHands } from './PokerUtils';
 
 export class PokerGame {
     constructor(rootGame, x, y) {
@@ -70,7 +70,7 @@ export class PokerGame {
         }
 
         if (this.allPlayersHaveActed()) {
-            switch(this.round) {
+            switch (this.round) {
                 case 1:
                     return this.flop();
                 case 2:
@@ -163,7 +163,7 @@ export class PokerGame {
         let pots = [];
 
         let unassignedPlayers = this.players.sort((a, b) => a.stake - b.stake);
-        
+
         do {
             let smallestBetPlayers = unassignedPlayers.filter(p => p.stake === unassignedPlayers[0].stake);
             let eachPlayersContribution = smallestBetPlayers[0].stake;
@@ -343,7 +343,7 @@ class Card {
     }
 
     getSpokenName() {
-        switch(this.value) {
+        switch (this.value) {
             case 2:
                 return 'two';
             case 3:

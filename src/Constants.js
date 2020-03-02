@@ -1,5 +1,6 @@
 export const GAME_WINDOW_WIDTH = 55;
 export const GAME_WINDOW_HEIGHT = 45;
+export const SIDEBAR_WIDTH = 20;
 
 export function fromSeed(seed, max = 1, min = 0) {
 
@@ -19,18 +20,18 @@ export function sampleFromSeed(seed, items) {
     return items[Math.floor(fromSeed(seed) * items.length)];
 }
 
-export const formatMoney = function(cents) {
+export const formatMoney = function (cents) {
     if (cents === 0) {
         return '$0';
     }
     if (cents < 100) {
         return `${cents}\u00A2`;
     }
-    return `$${cents/100}`;
+    return `$${cents / 100}`;
 }
 
 export function valueToChar(value) {
-    switch(value) {
+    switch (value) {
         case 11:
             return 'J';
         case 12:
@@ -55,7 +56,7 @@ export const DIAMONDS = next();
 export const SPADES = next();
 
 export function suitToChar(suit, forRanking) {
-    switch(suit) {
+    switch (suit) {
         case SPADES:
             return forRanking ? 'S' : '\u2660';
         case HEARTS:
@@ -67,6 +68,32 @@ export function suitToChar(suit, forRanking) {
     }
     return '?';
 }
+
+export const RANGE_POINT_BLANK = next();
+export const RANGE_CLOSE = next();
+export const RANGE_MEDIUM = next();
+export const RANGE_LONG = next();
+export const RANGES = {};
+RANGES[RANGE_POINT_BLANK] = {
+    min: 0,
+    max: 1,
+    name: 'point blank'
+};
+RANGES[RANGE_CLOSE] = {
+    min: 2,
+    max: 6,
+    name: 'close'
+};
+RANGES[RANGE_MEDIUM] = {
+    min: 7,
+    max: 20,
+    name: 'medium'
+};
+RANGES[RANGE_LONG] = {
+    min: 21,
+    name: 'long'
+};
+
 
 export const TILE_DIRT_1 = next();
 export const TILE_DIRT_2 = next();

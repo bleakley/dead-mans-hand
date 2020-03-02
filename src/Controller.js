@@ -15,35 +15,55 @@ export class Controller {
         }
     }
 
+    movePlayerOrCursor(dx, dy) {
+        if (this.view.showInventory && dx === 0) {
+            this.view.moveInventoryCursor(dy);
+        } else if (this.view.showCursor) {
+            this.view.moveCursor(dx, dy);
+        } else {
+            this.game.movePlayer(dx, dy);
+        }
+    }
+
     handleKeyDown(event) {
-        //console.log(event.keyCode);
+        console.log(event.keyCode);
         switch (event.keyCode) {
             case 32: // space
                 this.game.playerPasses();
                 break;
             case 33:
-                this.game.movePlayer(1, -1);
+                this.movePlayerOrCursor(1, -1);
                 break;
             case 34:
-                this.game.movePlayer(1, 1);
+                this.movePlayerOrCursor(1, 1);
                 break;
             case 35:
-                this.game.movePlayer(-1, 1);
+                this.movePlayerOrCursor(-1, 1);
                 break;
             case 36:
-                this.game.movePlayer(-1, -1);
+                this.movePlayerOrCursor(-1, -1);
                 break;
             case 37:
-                this.game.movePlayer(-1, 0);
+                this.movePlayerOrCursor(-1, 0);
                 break;
             case 38:
-                this.game.movePlayer(0, -1);
+                this.movePlayerOrCursor(0, -1);
                 break;
             case 39:
-                this.game.movePlayer(1, 0);
+                this.movePlayerOrCursor(1, 0);
                 break;
             case 40:
-                this.game.movePlayer(0, 1);
+                this.movePlayerOrCursor(0, 1);
+                break;
+            case 27: // esc
+                this.view.clearControls();
+                break;
+            case 9: // tab
+                event.preventDefault();
+                this.view.cycleTargets();
+                break;
+            case 73: // i
+                this.view.toggleInventory();
                 break;
             case 70: // f
                 //this.game.playerFolds();
