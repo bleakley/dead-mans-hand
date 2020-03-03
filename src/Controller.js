@@ -21,7 +21,12 @@ export class Controller {
         } else if (this.view.showCursor) {
             this.view.moveCursor(dx, dy);
         } else {
-            return this.game.movePlayer(dx, dy);
+            let actionPerformed = this.game.movePlayer(dx, dy);
+            if (actionPerformed && this.game.player.activePokerPlayerRole && !this.view.showPokerView) {
+                this.view.togglePokerView();
+            }
+
+            return actionPerformed;
         }
     }
 
@@ -67,6 +72,9 @@ export class Controller {
                 break;
             case 73: // i
                 this.view.toggleInventory();
+                break;
+            case 80:
+                this.view.togglePokerView();
                 break;
             case 69: // e
                 // equip or unequip

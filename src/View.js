@@ -7,7 +7,7 @@ const widthOdd = GAME_WINDOW_WIDTH % 2 !== 0;
 const heightOdd = GAME_WINDOW_HEIGHT % 2 !== 0;
 
 const formatCards = function (cards, hidden = false) {
-    return cards.map(card => `%c{${hidden ? 'black' : card.getColor()}}%b{white}${hidden ? '??' : card.toString()}%c{white}%b{black}`).join(' ');
+    return cards.map(card => `%c{${hidden ? 'black' : card.getColor()}}%b{white}${hidden ? '??' : card.toString()}%c{white}%b{black}`).join(' ') + `%c{}`;
 }
 
 export class View {
@@ -21,15 +21,31 @@ export class View {
 
         this.showInventory = false;
         this.inventoryCursor = 0;
+
+        this.showPokerView = false;
     }
 
     clearControls() {
         this.showCursor = false;
         this.showInventory = false;
+        this.showPokerView = false;
     }
 
     toggleInventory() {
         this.showInventory = !this.showInventory;
+        if (this.showInventory) {
+            this.showPokerView = false;
+        }
+    }
+
+    togglePokerView() {
+        this.showPokerView = !this.showPokerView;
+        if (!this.game.player.activePokerPlayerRole) {
+            this.showPokerView = false;
+        }
+        if (this.showPokerView) {
+            this.showInventory = false;
+        }
     }
 
     moveCursor(dx, dy) {
@@ -150,6 +166,9 @@ export class View {
         if (this.showInventory) {
             this.clearSidebar();
             this.drawInventory();
+        } else if (this.showPokerView) {
+            this.clearSidebar();
+            this.drawPokerSidebar();
         } else {
             this.clearSidebar();
             this.drawSidebar();
@@ -197,6 +216,11 @@ export class View {
                 key: 'ESC',
                 description: 'hide inventory'
             });
+        } else if (this.showPokerView) {
+            commands.push({
+                key: 'ESC',
+                description: 'hide poker'
+            });
         } else if (this.showCursor) {
             commands.push({
                 key: 'ESC',
@@ -232,6 +256,13 @@ export class View {
                 }
 
             }
+        }
+
+        if (this.game.player.activePokerPlayerRole) {
+            commands.push({
+                key: 'P',
+                description: this.showPokerView ? 'hide poker' : 'show poker'
+            });
         }
 
         return commands;
@@ -271,6 +302,10 @@ export class View {
     drawWeaponSidebarRow(y, weapon, highlighted = false) {
         let ammoString = weapon.isMelee ? '[\u221E]' : `[${weapon.currentAmmo}/${weapon.capacity}]`;
         this.drawSidebarRow(y, _.capitalize(weapon.name), ammoString, highlighted);
+    }
+
+    drawCardSidebarRow(y, label, cards, hidden, description = '') {
+        this.display.drawText(GAME_WINDOW_WIDTH + 1, y, `${label} ${formatCards(cards, hidden)}${description}`);
     }
 
     drawSidebarRow(y, leftCol = '', rightCol = '', highlighted) {
@@ -326,6 +361,38 @@ export class View {
         this.drawAvailableCommands();
     }
 
+    drawPokerPlayerStatblock(y, player) {
+        let roleString = '';
+        if (player.game.dealer === player) {
+            roleString = ' (dealer)';
+        }
+
+        let cardsVisible = player.character.isPC || player.cardsRevealed;
+        let cardsDescription = '';
+        if (cardsVisible && player.hole.length >= 2) {
+            cardsDescription = ` (${player.bestHand().match})`;
+        }
+        this.drawSidebarRow(y + 0, player.character.name + roleString);
+        this.drawSidebarRow(y + 1, 'Cash:', formatMoney(player.character.cents));
+        this.drawSidebarRow(y + 2, 'Current bet:', formatMoney(player.currentBet));
+        this.drawCardSidebarRow(y + 3, `Cards:`, player.hole, !cardsVisible, cardsDescription);
+    }
+
+    drawPokerSidebar() {
+        let character = this.game.player;
+        let pokerGame = character.activePokerPlayerRole.game;
+        this.drawSidebarRow(0, 'Poker Game');
+        this.drawSidebarRow(2, `Blinds:`, `${formatMoney(pokerGame.smallBlind)}/${formatMoney(pokerGame.bigBlind)}`);
+        this.drawSidebarRow(3, `Pot:`, `${formatMoney(pokerGame.getPot())}`);
+        this.drawCardSidebarRow(4, `Common:`, pokerGame.communityCards);
+
+        pokerGame.players.forEach((player, index) => {
+            this.drawPokerPlayerStatblock(6 + (index * 5), player);
+        });
+
+        this.drawAvailableCommands();
+    }
+
     drawOverlay() {
         let mouseMap = this.getMapMouseCoords();
         let mouseDisplay = this.getDisplayMouseCoords();
@@ -349,7 +416,7 @@ export class View {
             if (character.activePokerPlayerRole) {
                 this.display.drawText(displayCoords.x + 2, displayCoords.y + 5, `Current bet: ${formatMoney(character.activePokerPlayerRole.currentBet)}`);
                 let cardsVisible = character.isPC || character.activePokerPlayerRole.cardsRevealed;
-                this.display.drawText(displayCoords.x + 2, displayCoords.y + 6, `Hole cards: ${formatCards(character.activePokerPlayerRole.hole, !cardsVisible)}`);
+                this.display.drawText(displayCoords.x + 2, displayCoords.y + 6, `Cards: ${formatCards(character.activePokerPlayerRole.hole, !cardsVisible)}`);
             }
         }
 

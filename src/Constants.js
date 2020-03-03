@@ -1,6 +1,6 @@
 export const GAME_WINDOW_WIDTH = 55;
 export const GAME_WINDOW_HEIGHT = 45;
-export const SIDEBAR_WIDTH = 25;
+export const SIDEBAR_WIDTH = 28; // this is the min width needed to show 'Common: ' and then four tens with suits
 
 export function fromSeed(seed, max = 1, min = 0) {
 
@@ -27,7 +27,10 @@ export const formatMoney = function (cents) {
     if (cents < 100) {
         return `${cents}\u00A2`;
     }
-    return `$${cents / 100}`;
+    if (cents % 100 === 0) {
+        return `$${cents / 100}`;
+    }
+    return `$${Number.parseFloat(cents / 100).toFixed(2)}`;
 }
 
 export function valueToChar(value) {
