@@ -64,7 +64,7 @@ export class Game {
         let newX = this.player.x + dx;
         let newY = this.player.y + dy;
 
-        if (this.player.activePokerGame) {
+        if (this.player.activePokerPlayerRole) {
             return false;
         }
 
