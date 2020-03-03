@@ -22,6 +22,7 @@ export class PokerGame {
 
         this.deck = new Deck();
         this.communityCards = [];
+        this.discardPile = [];
 
         this.players = [];
     }
@@ -81,12 +82,37 @@ export class PokerGame {
                     return this.reveal();
                 case 5:
                     return this.dividePot();
+                case 6:
+                    this.cleanUp();
+                    this.dealer = this.getNextPlayer(this.dealer);
             }
         } else {
             this.activePlayer.play();
             this.activePlayer = this.getNextPlayer(this.activePlayer);
         }
 
+    }
+
+    cleanUp() {
+        this.round = 0;
+        this.activePlayer = null;
+        this.lastPlayerToBet = null;
+
+        this.winningHand = { comboRank: -1 };
+
+        this.discardPile = this.discardPile.concat(this.communityCards);
+        this.communityCards = [];
+
+        this.players.forEach(player => {
+            player.currentWinnings = 0;
+            player.stake = 0;
+            player.currentBet = 0;
+            player.inCurrentHand = false;
+            player.hasTakenActionSinceLastRaise = false;
+            player.cardsRevealed = false;
+            player.cardsMucked = false;
+            player.discardCards();
+        })
     }
 
     allPlayersHaveActed() {
@@ -99,6 +125,11 @@ export class PokerGame {
     start() {
         this.dealer.character.say('Deal and ante.');
         this.round = 1;
+        
+        this.deck.returnCards(this.discardPile);
+        this.discardPile = [];
+        this.deck.shuffle();
+
         this.players.forEach(player => {
             player.inCurrentHand = true;
             player.takeCard(this.deck.draw());
@@ -242,6 +273,11 @@ class Player {
 
     takeCard(card) {
         this.hole.push(card);
+    }
+
+    discardCards() {
+        this.game.discardPile = this.game.discardPile.concat(this.hole);
+        this.hole = [];
     }
 
     bet(amount) {
