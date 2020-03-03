@@ -72,17 +72,19 @@ export class Game {
             this.player.startTurn();
             this.player.x = newX;
             this.player.y = newY;
+            return true;
         } else if (this.getPokerGame(newX, newY)) {
             this.player.startTurn();
             this.player.join(this.getPokerGame(newX, newY));
+            return true;
         }
-        return true;
+        return false;
     }
 
     playerPasses() {
         this.player.startTurn();
         this.player.wait();
-        this.playTurn();
+        return true;
     }
 
     playTurn() {
