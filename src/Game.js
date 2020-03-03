@@ -11,7 +11,7 @@ export class Game {
         this.pokerGames = [];
 
         this.player = new PlayerCharacter();
-        this.addCharacter(this.player, 15, 6);
+        this.addCharacter(this.player, -2, 2);
         let npc = this.addCharacter(new Scoundrel(), -5, -6);
         let npc2 = this.addCharacter(new Scoundrel(), -6, -5);
         let npc3 = this.addCharacter(new Scoundrel(), -4, -4);

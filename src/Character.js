@@ -96,7 +96,9 @@ export class Character {
         if (this.vigilance < this.getMaxVigilance()) {
             this.vigilance++;
         }
-        this.say(_.sample(['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '*whistle*', '*cough*']));
+        if (_.random(1, 100) < 4) {
+            this.say(_.sample(['*whistle*', '*cough*']));
+        }
     }
 
     equip(weapon) {
@@ -165,7 +167,7 @@ export class PlayerCharacter extends Character {
     constructor() {
         super(0, 0, 0, 0, 0, 0);
         this.name = 'Rodney';
-        this.cents = 200;
+        this.cents = 2000;
         this.isPC = true;
         this.isNPC = false;
         this.bullets = 50;
@@ -194,7 +196,7 @@ export class Scoundrel extends Character {
         this.name = `${_.sample(MALE_NAMES)} ${_.sample(LAST_NAMES)}`;
         this.symbol = '@';
 
-        this.cents = _.random(10, 2000);
+        this.cents = 2000;
 
     }
 }

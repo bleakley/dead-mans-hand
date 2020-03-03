@@ -25,6 +25,7 @@ export class PokerGame {
         this.discardPile = [];
 
         this.players = [];
+        this.playersWaitingToJoinHand = [];
     }
 
     getPot() {
@@ -37,10 +38,7 @@ export class PokerGame {
 
     addPlayer(character) {
         let player = new Player(this, character);
-        this.players.push(player);
-        if (this.players.length === 1) {
-            this.dealer = player;
-        }
+        this.playersWaitingToJoinHand.push(player);
         return player;
     }
 
@@ -66,7 +64,12 @@ export class PokerGame {
     }
 
     tick() {
-        if (this.round === 0 && this.players.length >= 2) {
+        if (this.round === 0 && (this.players.length + this.playersWaitingToJoinHand.length) >= 2) {
+            this.players = this.players.concat(this.playersWaitingToJoinHand);
+            this.playersWaitingToJoinHand = [];
+            if (!this.dealer) {
+                this.dealer = this.players[0];
+            }
             return this.start();
         }
 
@@ -125,7 +128,7 @@ export class PokerGame {
     start() {
         this.dealer.character.say('Deal and ante.');
         this.round = 1;
-        
+
         this.deck.returnCards(this.discardPile);
         this.discardPile = [];
         this.deck.shuffle();
