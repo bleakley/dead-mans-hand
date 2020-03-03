@@ -79,6 +79,19 @@ export class Character {
 
     takeTurn() {
         this.startTurn();
+
+        let pokerPlayerRole = this.activePokerPlayerRole;
+        if (pokerPlayerRole && pokerPlayerRole.isActivePlayer() && pokerPlayerRole.game.waitingForActivePlayerAction) {
+            pokerPlayerRole.play();
+            pokerPlayerRole.game.activePlayer = pokerPlayerRole.game.getNextPlayer(pokerPlayerRole);
+            return;
+        }
+
+        if (pokerPlayerRole && pokerPlayerRole.isDealer() && pokerPlayerRole.game.waitingForDealerAction) {
+            pokerPlayerRole.deal();
+            return;
+        }
+
         this.wait();
     }
 
@@ -96,7 +109,10 @@ export class Character {
         if (this.vigilance < this.getMaxVigilance()) {
             this.vigilance++;
         }
-        if (_.random(1, 100) < 4) {
+
+        if (_.random(1, 100) < 20 && this.isNPC && this.activePokerPlayerRole && this.activePokerPlayerRole.game.activePlayer && this.activePokerPlayerRole.game.activePlayer.character.isPC) {
+            this.say(_.sample(['Your go.', 'Waiting on you.', `${this.activePokerPlayerRole.game.activePlayer.character.name}?`]));
+        } else if (_.random(1, 100) < 4) {
             this.say(_.sample(['*whistle*', '*cough*']));
         }
     }

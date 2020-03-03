@@ -89,15 +89,17 @@ export class Game {
 
     playTurn() {
         this.turn++;
+
+        this.pokerGames.forEach(g => {
+            g.tick();
+        });
+
         this.characters.forEach(c => {
             if (c.isNPC) {
                 c.takeTurn();
             }
         });
 
-        this.pokerGames.forEach(g => {
-            g.tick();
-        });
     }
 
 }

@@ -8,6 +8,9 @@ export class PokerGame {
         this.x = x;
         this.y = y;
 
+        this.waitingForActivePlayerAction = false;
+        this.waitingForDealerAction = false;
+
         this.round = 0;
         this.dealer = null;
         this.activePlayer = null;
@@ -64,34 +67,27 @@ export class PokerGame {
     }
 
     tick() {
+        this.waitingForActivePlayerAction = false;
+        this.waitingForDealerAction = false;
         if (this.round === 0 && (this.players.length + this.playersWaitingToJoinHand.length) >= 2) {
             this.players = this.players.concat(this.playersWaitingToJoinHand);
             this.playersWaitingToJoinHand = [];
             if (!this.dealer) {
                 this.dealer = this.players[0];
             }
-            return this.start();
+            this.waitingForDealerAction = true;
+            return;
         }
 
         if (this.allPlayersHaveActed()) {
-            switch (this.round) {
-                case 1:
-                    return this.flop();
-                case 2:
-                    return this.turn();
-                case 3:
-                    return this.river();
-                case 4:
-                    return this.reveal();
-                case 5:
-                    return this.dividePot();
-                case 6:
-                    this.cleanUp();
-                    this.dealer = this.getNextPlayer(this.dealer);
+            if (this.round === 6) {
+                this.cleanUp();
+                this.dealer = this.getNextPlayer(this.dealer);
+            } else {
+                this.waitingForDealerAction = true;
             }
         } else {
-            this.activePlayer.play();
-            this.activePlayer = this.getNextPlayer(this.activePlayer);
+            this.waitingForActivePlayerAction = true;
         }
 
     }
@@ -218,8 +214,6 @@ export class PokerGame {
             potWinners.map(p => p.currentWinnings += Math.floor(pot.amount / potWinners.length));
         });
 
-        console.log(pots);
-
         let moneyReturnedToPlayers = 0;
         this.players.forEach(p => {
             p.character.cents += p.currentWinnings;
@@ -283,6 +277,24 @@ class Player {
         this.hole = [];
     }
 
+    deal() {
+        this.game.waitingForDealerAction = false;
+        switch (this.game.round) {
+            case 0:
+                return this.game.start();
+            case 1:
+                return this.game.flop();
+            case 2:
+                return this.game.turn();
+            case 3:
+                return this.game.river();
+            case 4:
+                return this.game.reveal();
+            case 5:
+                return this.game.dividePot();
+        }
+    }
+
     bet(amount) {
         let maxBet = Math.min(this.character.cents - this.currentBet, amount);
         if (this.currentBet + maxBet > this.game.getHighestBet()) {
@@ -291,6 +303,7 @@ class Player {
         this.currentBet += maxBet;
         this.game.lastPlayerToBet = this;
         this.character.say(`I bet ${formatMoney(this.currentBet)}.`);
+        this.game.waitingForActivePlayerAction = false;
     }
 
     play() {
@@ -308,16 +321,19 @@ class Player {
         this.inCurrentHand = false;
         this.character.say(`I fold.`);
         this.hasTakenActionSinceLastRaise = true;
+        this.game.waitingForActivePlayerAction = false;
     }
 
     check() {
         this.character.say(`Check.`);
         this.hasTakenActionSinceLastRaise = true;
+        this.game.waitingForActivePlayerAction = false;
     }
 
     call() {
         this.bet(this.game.getHighestBet() - this.currentBet);
         this.hasTakenActionSinceLastRaise = true;
+        this.game.waitingForActivePlayerAction = false;
     }
 
     raise() {
