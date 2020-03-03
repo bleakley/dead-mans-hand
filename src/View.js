@@ -180,6 +180,70 @@ export class View {
         }
     }
 
+    getKeyboardCommands() {
+        let player = this.game.player;
+        let commands = [];
+        commands.push({
+            key: 'TAB',
+            description: 'select target'
+        });
+        commands.push({
+            key: 'SPACE',
+            description: 'wait'
+        });
+
+        if (this.showInventory) {
+            commands.push({
+                key: 'ESC',
+                description: 'hide inventory'
+            });
+        } else if (this.showCursor) {
+            commands.push({
+                key: 'ESC',
+                description: 'hide cursor'
+            });
+        }
+
+        commands.push({
+            key: 'I',
+            description: this.showInventory ? 'hide inventory' : 'show inventory'
+        });
+
+        if (player.canReload()) {
+            commands.push({
+                key: 'R',
+                description: 'reload ' + player.getCurrentWeapon().name
+            });
+        }
+
+        if (this.showInventory) {
+            let selectedItem = player.inventory[this.inventoryCursor];
+            if (selectedItem && selectedItem.isWeapon) {
+                if (selectedItem !== player.getCurrentWeapon()) {
+                    commands.push({
+                        key: 'E',
+                        description: 'equip ' + selectedItem.name
+                    });
+                } else {
+                    commands.push({
+                        key: 'E',
+                        description: 'unequip ' + selectedItem.name
+                    });
+                }
+
+            }
+        }
+
+        return commands;
+    }
+
+    drawAvailableCommands() {
+        let commands = this.getKeyboardCommands();
+        commands.forEach((command, index) => {
+            this.drawSidebarRow(GAME_WINDOW_HEIGHT - 1 - index, command.key + ':', command.description);
+        });
+    }
+
     drawSidebar() {
         let sidebarX = GAME_WINDOW_WIDTH + 1;
         let character = this.game.player;
@@ -200,6 +264,8 @@ export class View {
         let weapon = character.getCurrentWeapon();
         this.drawWeaponSidebarRow(14, weapon);
         this.drawWeaponStatblock(15, weapon);
+
+        this.drawAvailableCommands();
     }
 
     drawWeaponSidebarRow(y, weapon, highlighted = false) {
@@ -215,7 +281,7 @@ export class View {
     drawWeaponStatblock(y, weapon) {
         let damage = this.game.player.getDamageWithWeapon(weapon);
         this.drawSidebarRow(y, weapon.description);
-        this.drawSidebarRow(y + 1, 'Draw speed:', `${weapon.drawSpeed}`);
+        this.drawSidebarRow(y + 1, 'Draw delay:', `${weapon.drawDelay}`);
         this.drawSidebarRow(y + 2, 'Damage:', damage.min === damage.max ? damage.min : `${damage.min}-${damage.max}`);
         this.drawSidebarRow(y + 3, 'Range:', weapon.isMelee ? 'Melee' : `[${[
             weapon.rangeModifiers[RANGE_POINT_BLANK],
@@ -256,6 +322,8 @@ export class View {
                 this.drawSidebarRow(startListAt + i, _.capitalize(item.name), '', item === selectedItem);
             }
         });
+
+        this.drawAvailableCommands();
     }
 
     drawOverlay() {

@@ -1,5 +1,5 @@
 import { MALE_NAMES, LAST_NAMES, RANGE_POINT_BLANK, RANGE_CLOSE, RANGE_MEDIUM, RANGE_LONG } from "./Constants";
-import { Fist, Revolver, Knife, CanOfBeans } from "./Item";
+import { Fist, Revolver, Knife, CanOfBeans, Shotgun, Bow } from "./Item";
 
 export class Character {
     constructor(level, strength, quickness, cunning, guile, grit) {
@@ -16,6 +16,7 @@ export class Character {
         this.inventory = [];
         this.equippedWeapon = null;
         this.naturalWeapon = new Fist();
+        this.initiative = 0;
 
         this.level = level;
         this.xp = 0;
@@ -98,8 +99,36 @@ export class Character {
         this.say(_.sample(['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '*whistle*', '*cough*']));
     }
 
+    equip(weapon) {
+        if (this.equippedWeapon && this.equippedWeapon.unloadsWhenStowed) {
+            this[this.equippedWeapon.ammoType] += this.equippedWeapon.currentAmmo;
+            this.equippedWeapon.currentAmmo = 0;
+        }
+        this.equippedWeapon = weapon;
+        this.initiative -= weapon.drawDelay;
+    }
+
+    unequip() {
+        if (this.equippedWeapon.unloadsWhenStowed) {
+            this[this.equippedWeapon.ammoType] += this.equippedWeapon.currentAmmo;
+            this.equippedWeapon.currentAmmo = 0;
+        }
+        this.equippedWeapon = null;
+    }
+
+    reload() {
+        let weapon = this.getCurrentWeapon();
+        weapon.currentAmmo++;
+        this[weapon.ammoType]--;
+    }
+
     getCurrentWeapon() {
         return this.equippedWeapon || this.naturalWeapon;
+    }
+
+    canReload() {
+        let weapon = this.getCurrentWeapon();
+        return weapon.capacity && weapon.currentAmmo < weapon.capacity && this[weapon.ammoType] > 0;
     }
 
     getDamageWithWeapon(weapon) {
@@ -140,10 +169,14 @@ export class PlayerCharacter extends Character {
         this.isPC = true;
         this.isNPC = false;
         this.bullets = 50;
+        this.buckshot = 20;
+        this.arrows = 20;
 
         this.inventory.push(new Revolver());
         this.inventory.push(new Knife());
         this.inventory.push(new CanOfBeans());
+        this.inventory.push(new Shotgun());
+        this.inventory.push(new Bow());
     }
 }
 

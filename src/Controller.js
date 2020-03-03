@@ -21,39 +21,42 @@ export class Controller {
         } else if (this.view.showCursor) {
             this.view.moveCursor(dx, dy);
         } else {
-            this.game.movePlayer(dx, dy);
+            return this.game.movePlayer(dx, dy);
         }
     }
 
     handleKeyDown(event) {
         console.log(event.keyCode);
+        let player = this.game.player;
+        let playerTookAction = false;
         switch (event.keyCode) {
             case 32: // space
                 this.game.playerPasses();
+                playerTookAction = true;
                 break;
             case 33:
-                this.movePlayerOrCursor(1, -1);
+                playerTookAction = this.movePlayerOrCursor(1, -1);
                 break;
             case 34:
-                this.movePlayerOrCursor(1, 1);
+                playerTookAction = this.movePlayerOrCursor(1, 1);
                 break;
             case 35:
-                this.movePlayerOrCursor(-1, 1);
+                playerTookAction = this.movePlayerOrCursor(-1, 1);
                 break;
             case 36:
-                this.movePlayerOrCursor(-1, -1);
+                playerTookAction = this.movePlayerOrCursor(-1, -1);
                 break;
             case 37:
-                this.movePlayerOrCursor(-1, 0);
+                playerTookAction = this.movePlayerOrCursor(-1, 0);
                 break;
             case 38:
-                this.movePlayerOrCursor(0, -1);
+                playerTookAction = this.movePlayerOrCursor(0, -1);
                 break;
             case 39:
-                this.movePlayerOrCursor(1, 0);
+                playerTookAction = this.movePlayerOrCursor(1, 0);
                 break;
             case 40:
-                this.movePlayerOrCursor(0, 1);
+                playerTookAction = this.movePlayerOrCursor(0, 1);
                 break;
             case 27: // esc
                 this.view.clearControls();
@@ -65,16 +68,32 @@ export class Controller {
             case 73: // i
                 this.view.toggleInventory();
                 break;
-            case 70: // f
-                //this.game.playerFolds();
-                break;
-            case 67: // c
-                //this.game.playerChecks();
+            case 69: // e
+                // equip or unequip
+                if (this.view.showInventory) {
+                    let selectedItem = player.inventory[this.view.inventoryCursor];
+                    if (selectedItem && selectedItem.isWeapon) {
+                        if (selectedItem !== player.getCurrentWeapon()) {
+                            player.equip(selectedItem);
+                            playerTookAction = true;
+                        } else {
+                            player.unequip();
+                            playerTookAction = true;
+                        }
+                    }
+                }
                 break;
             case 82: // r
-                //this.game.playerRaises();
+                // reload
+                if (player.canReload()) {
+                    player.reload();
+                    playerTookAction = true;
+                }
                 break;
 
+        }
+        if (playerTookAction) {
+            this.game.playTurn();
         }
         this.view.drawMap();
         this.view.drawOverlay();

@@ -1,6 +1,6 @@
 export const GAME_WINDOW_WIDTH = 55;
 export const GAME_WINDOW_HEIGHT = 45;
-export const SIDEBAR_WIDTH = 20;
+export const SIDEBAR_WIDTH = 25;
 
 export function fromSeed(seed, max = 1, min = 0) {
 

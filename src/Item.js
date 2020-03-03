@@ -68,7 +68,7 @@ export class Fist extends MeleeWeapon {
         this.name = 'fist';
         this.naturalItem = true;
 
-        this.drawSpeed = 0;
+        this.drawDelay = 0;
         this.minDamage = 1;
         this.maxDamageBase = 1;
         this.maxDamageAttributes = ['strength'];
@@ -80,7 +80,7 @@ export class Knife extends MeleeWeapon {
         super();
         this.name = 'knife';
 
-        this.drawSpeed = 1;
+        this.drawDelay = 1;
         this.minDamage = 1;
         this.maxDamageBase = 4;
         this.maxDamageAttributes = ['strength'];
@@ -92,7 +92,7 @@ export class Shovel extends MeleeWeapon {
         super();
         this.name = 'shovel';
 
-        this.drawSpeed = 2;
+        this.drawDelay = 3;
         this.minDamage = 2;
         this.maxDamageBase = 3;
         this.maxDamageAttributes = ['strength'];
@@ -104,7 +104,7 @@ export class Axe extends MeleeWeapon {
         super();
         this.name = 'axe';
 
-        this.drawSpeed = 2;
+        this.drawDelay = 3;
         this.minDamage = 3;
         this.maxDamageBase = 4;
         this.maxDamageAttributes = ['strength'];
@@ -118,7 +118,7 @@ export class Bow extends RangedWeapon {
 
         this.unloadsWhenStowed = true;
 
-        this.drawSpeed = 2;
+        this.drawDelay = 2;
         this.capacity = 1;
         this.ammoType = 'arrows'
 
@@ -137,7 +137,7 @@ export class Pistol extends RangedWeapon {
         super();
         this.name = 'pistol';
 
-        this.drawSpeed = 1;
+        this.drawDelay = 1;
         this.capacity = 1;
         this.ammoType = 'bullets'
 
@@ -156,7 +156,7 @@ export class Revolver extends RangedWeapon {
         super();
         this.name = 'revolver';
 
-        this.drawSpeed = 1;
+        this.drawDelay = 1;
         this.capacity = 6;
         this.ammoType = 'bullets'
 
@@ -175,7 +175,7 @@ export class Rifle extends RangedWeapon {
         super();
         this.name = 'rifle';
 
-        this.drawSpeed = 2;
+        this.drawDelay = 3;
         this.capacity = 1;
         this.ammoType = 'bullets'
 
@@ -194,7 +194,7 @@ export class Shotgun extends RangedWeapon {
         super();
         this.name = 'shotgun';
 
-        this.drawSpeed = 2;
+        this.drawDelay = 3;
         this.capacity = 2;
         this.ammoType = 'buckshot'
 
