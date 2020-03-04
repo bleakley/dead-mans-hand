@@ -76,6 +76,27 @@ export class Controller {
             case 80:
                 this.view.togglePokerView();
                 break;
+            case 67: // c
+                if (player.activePokerPlayerRole && player.activePokerPlayerRole.canCheck()) {
+                    player.activePokerPlayerRole.check();
+                    player.activePokerPlayerRole.game.activePlayer = player.activePokerPlayerRole.game.getNextPlayer(player.activePokerPlayerRole, true);
+                    playerTookAction = true;
+                }
+                break;
+            case 66: // b
+                if (player.activePokerPlayerRole && player.activePokerPlayerRole.canCall()) {
+                    player.activePokerPlayerRole.call();
+                    player.activePokerPlayerRole.game.activePlayer = player.activePokerPlayerRole.game.getNextPlayer(player.activePokerPlayerRole, true);
+                    playerTookAction = true;
+                }
+                break;
+            case 70: // f
+                if (player.activePokerPlayerRole && player.activePokerPlayerRole.canFold()) {
+                    player.activePokerPlayerRole.fold();
+                    player.activePokerPlayerRole.game.activePlayer = player.activePokerPlayerRole.game.getNextPlayer(player.activePokerPlayerRole, true);
+                    playerTookAction = true;
+                }
+                break;
             case 69: // e
                 // equip or unequip
                 if (this.view.showInventory) {

@@ -83,7 +83,7 @@ export class Character {
         let pokerPlayerRole = this.activePokerPlayerRole;
         if (pokerPlayerRole && pokerPlayerRole.isActivePlayer() && pokerPlayerRole.game.waitingForActivePlayerAction) {
             pokerPlayerRole.play();
-            pokerPlayerRole.game.activePlayer = pokerPlayerRole.game.getNextPlayer(pokerPlayerRole);
+            pokerPlayerRole.game.activePlayer = pokerPlayerRole.game.getNextPlayer(pokerPlayerRole, true);
             return;
         }
 
@@ -96,7 +96,9 @@ export class Character {
     }
 
     join(pokerGame) {
-        this.say(`I'm joining this game.`);
+        if (this.isNPC) {
+            this.say(`I'm joining this game.`);
+        }
         let p = pokerGame.addPlayer(this);
         this.activePokerPlayerRole = p;
     }

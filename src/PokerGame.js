@@ -45,10 +45,10 @@ export class PokerGame {
         return player;
     }
 
-    getNextPlayer(previousPlayer) {
+    getNextPlayer(previousPlayer, inCurrentHand) {
         const clockwiseOrder = ['0,-1', '1,-1', '1,0', '1,1', '0,1', '-1,1', '-1,0', '-1,-1'];
 
-        let playersOrderedClockwise = this.players.sort((p1, p2) => {
+        let playersOrderedClockwise = (inCurrentHand ? this.players.filter(p => p.inCurrentHand) : this.players).sort((p1, p2) => {
             let i1 = clockwiseOrder.findIndex(p => p === `${p1.character.x - this.x},${p1.character.y - this.y}`);
             let i2 = clockwiseOrder.findIndex(p => p === `${p2.character.x - this.x},${p2.character.y - this.y}`);
             if (i1 === -1 || i2 === -1) {
@@ -82,7 +82,7 @@ export class PokerGame {
         if (this.allPlayersHaveActed()) {
             if (this.round === 6) {
                 this.cleanUp();
-                this.dealer = this.getNextPlayer(this.dealer);
+                this.dealer = this.getNextPlayer(this.dealer, false);
             } else {
                 this.waitingForDealerAction = true;
             }
@@ -134,11 +134,11 @@ export class PokerGame {
             player.takeCard(this.deck.draw());
             player.takeCard(this.deck.draw());
         });
-        let smallBlindPlayer = this.getNextPlayer(this.dealer);
+        let smallBlindPlayer = this.getNextPlayer(this.dealer, true);
         smallBlindPlayer.bet(this.smallBlind);
-        let bigBlindPlayer = this.getNextPlayer(smallBlindPlayer);
+        let bigBlindPlayer = this.getNextPlayer(smallBlindPlayer, true);
         bigBlindPlayer.bet(this.bigBlind);
-        this.activePlayer = this.getNextPlayer(bigBlindPlayer);
+        this.activePlayer = this.getNextPlayer(bigBlindPlayer, true);
         this.lastPlayerToBet = null;
     }
 
@@ -147,7 +147,7 @@ export class PokerGame {
         this.players.map(p => p.hasTakenActionSinceLastRaise = false);
         let cards = [this.deck.draw(), this.deck.draw(), this.deck.draw()];
         this.communityCards.push(...cards);
-        this.activePlayer = this.getNextPlayer(this.dealer);
+        this.activePlayer = this.getNextPlayer(this.dealer, true);
         this.lastPlayerToBet = null;
         this.dealer.character.say(`${_.capitalize(cards.map(c => c.getSpokenName()).join(', '))} on the flop.`);
     }
@@ -157,7 +157,7 @@ export class PokerGame {
         this.players.map(p => p.hasTakenActionSinceLastRaise = false);
         let card = this.deck.draw();
         this.communityCards.push(card);
-        this.activePlayer = this.getNextPlayer(this.dealer);
+        this.activePlayer = this.getNextPlayer(this.dealer, true);
         this.lastPlayerToBet = null;
         this.dealer.character.say(`${_.capitalize(card.getSpokenName())} on the turn.`);
     }
@@ -167,7 +167,7 @@ export class PokerGame {
         this.players.map(p => p.hasTakenActionSinceLastRaise = false);
         let card = this.deck.draw();
         this.communityCards.push(card);
-        this.activePlayer = this.getNextPlayer(this.dealer);
+        this.activePlayer = this.getNextPlayer(this.dealer, true);
         this.lastPlayerToBet = null;
         this.dealer.character.say(`${_.capitalize(card.getSpokenName())} on the river.`);
     }
@@ -175,7 +175,7 @@ export class PokerGame {
     reveal() {
         this.round = 5;
         this.dealer.character.say('Show your cards!');
-        this.activePlayer = this.getNextPlayer(this.dealer);
+        this.activePlayer = this.getNextPlayer(this.dealer, true);
     }
 
     dividePot() {
@@ -302,7 +302,6 @@ class Player {
         }
         this.currentBet += maxBet;
         this.game.lastPlayerToBet = this;
-        this.character.say(`I bet ${formatMoney(this.currentBet)}.`);
         this.game.waitingForActivePlayerAction = false;
     }
 
@@ -310,11 +309,23 @@ class Player {
         if (this.game.round === 5 && !this.cardsRevealed && !this.cardsMucked) {
             return this.revealCards();
         }
-        if (this.isAllIn() || this.isMatchingHighestBet()) {
+        if (this.canCheck()) {
             this.check();
         } else {
             this.call();
         }
+    }
+
+    canCheck() {
+        return this.isActivePlayer() && this.inCurrentHand && (this.isAllIn() || this.isMatchingHighestBet());
+    }
+
+    canFold() {
+        return this.isActivePlayer() && this.inCurrentHand;
+    }
+
+    canCall() {
+        return this.isActivePlayer() && this.inCurrentHand && !this.isAllIn() && this.currentBet < this.game.getHighestBet();
     }
 
     fold() {
@@ -332,6 +343,7 @@ class Player {
 
     call() {
         this.bet(this.game.getHighestBet() - this.currentBet);
+        this.character.say(`I bet ${formatMoney(this.currentBet)}.`);
         this.hasTakenActionSinceLastRaise = true;
         this.game.waitingForActivePlayerAction = false;
     }
@@ -347,6 +359,7 @@ class Player {
         if (compareHands(hand, this.game.winningHand) <= 0) {
             this.game.winningHand = hand;
         }
+        this.game.waitingForActivePlayerAction = false;
     }
 
     muckCards() {

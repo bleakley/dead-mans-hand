@@ -258,11 +258,36 @@ export class View {
             }
         }
 
-        if (this.game.player.activePokerPlayerRole) {
+        let pokerRole = this.game.player.activePokerPlayerRole;
+        if (pokerRole) {
             commands.push({
                 key: 'P',
                 description: this.showPokerView ? 'hide poker' : 'show poker'
             });
+            if (pokerRole.isActivePlayer()) {
+                if (pokerRole.canFold()) {
+                    commands.push({
+                        key: 'F',
+                        description: 'fold'
+                    });
+                }
+                if (pokerRole.canCheck()) {
+                    commands.push({
+                        key: 'C',
+                        description: 'check'
+                    });
+                }
+                if (pokerRole.canCall()) {
+                    commands.push({
+                        key: 'B',
+                        description: `bet ${formatMoney(Math.min(this.game.player.cents, pokerRole.game.getHighestBet()))}`
+                    });
+                }
+                /*commands.push({
+                    key: 'B',
+                    description: 'bet'
+                });*/
+            }
         }
 
         return commands;
