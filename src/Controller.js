@@ -85,7 +85,7 @@ export class Controller {
                 break;
             case 66: // b
                 if (player.activePokerPlayerRole && player.activePokerPlayerRole.canCall()) {
-                    player.activePokerPlayerRole.call();
+                    player.activePokerPlayerRole.bet(this.view.tempBetValue);
                     player.activePokerPlayerRole.game.activePlayer = player.activePokerPlayerRole.game.getNextPlayer(player.activePokerPlayerRole, true);
                     playerTookAction = true;
                 }
@@ -95,6 +95,16 @@ export class Controller {
                     player.activePokerPlayerRole.fold();
                     player.activePokerPlayerRole.game.activePlayer = player.activePokerPlayerRole.game.getNextPlayer(player.activePokerPlayerRole, true);
                     playerTookAction = true;
+                }
+                break;
+            case 189: // minus
+                if (player.activePokerPlayerRole && player.activePokerPlayerRole.canCall()) {
+                    this.view.tempBetValue -= 100;
+                }
+                break;
+            case 187: // plus
+                if (player.activePokerPlayerRole && player.activePokerPlayerRole.canCall()) {
+                    this.view.tempBetValue += 100;
                 }
                 break;
             case 69: // e

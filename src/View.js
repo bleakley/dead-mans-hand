@@ -23,6 +23,7 @@ export class View {
         this.inventoryCursor = 0;
 
         this.showPokerView = false;
+        this.tempBetValue = 0;
     }
 
     clearControls() {
@@ -265,6 +266,12 @@ export class View {
                 description: this.showPokerView ? 'hide poker' : 'show poker'
             });
             if (pokerRole.isActivePlayer()) {
+                let minBet = pokerRole.getMinValidBet();
+                let maxBet = pokerRole.getMaxValidBet();
+                this.tempBetValue = Math.max(minBet, this.tempBetValue);
+                this.tempBetValue = Math.min(maxBet, this.tempBetValue);
+                let canIncrease = this.tempBetValue < maxBet;
+                let canDecrease = this.tempBetValue > minBet;
                 if (pokerRole.canFold()) {
                     commands.push({
                         key: 'F',
@@ -280,8 +287,24 @@ export class View {
                 if (pokerRole.canCall()) {
                     commands.push({
                         key: 'B',
-                        description: `bet ${formatMoney(Math.min(this.game.player.cents, pokerRole.game.getHighestBet()))}`
+                        description: `bet ${formatMoney(this.tempBetValue)}`
                     });
+                    if (canIncrease && canDecrease) {
+                        commands.push({
+                            key: '+/-',
+                            description: `increase/decrease bet`
+                        });
+                    } else if (canIncrease) {
+                        commands.push({
+                            key: '+',
+                            description: `increase bet`
+                        });
+                    } else if (canDecrease) {
+                        commands.push({
+                            key: '-',
+                            description: `decrease bet`
+                        });
+                    }
                 }
                 /*commands.push({
                     key: 'B',

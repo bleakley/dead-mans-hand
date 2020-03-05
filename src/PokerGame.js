@@ -295,13 +295,25 @@ class Player {
         }
     }
 
+    getMaxValidBet() {
+        let highestOtherStackInHand = this.game.players.filter(p => p.inCurrentHand && p !== this).reduce((prevMax, player) => Math.max(prevMax, player.character.cents), 0);
+        return Math.min(this.character.cents, highestOtherStackInHand);
+    }
+
+    getMinValidBet() {
+        return Math.min(this.game.getHighestBet(), Math.max(this.character.cents, 1));
+    }
+
     bet(amount) {
-        let maxBet = Math.min(this.character.cents - this.currentBet, amount);
-        if (this.currentBet + maxBet > this.game.getHighestBet()) {
+        let maxBet = Math.min(this.character.cents, amount);
+        if (maxBet > this.game.getHighestBet()) {
             this.game.players.map(p => p.hasTakenActionSinceLastRaise = false);
         }
-        this.currentBet += maxBet;
+        this.currentBet = maxBet;
         this.game.lastPlayerToBet = this;
+        this.game.waitingForActivePlayerAction = false;
+        this.character.say(`I bet ${formatMoney(this.currentBet)}.`);
+        this.hasTakenActionSinceLastRaise = true;
         this.game.waitingForActivePlayerAction = false;
     }
 
@@ -314,6 +326,10 @@ class Player {
         } else {
             this.call();
         }
+    }
+
+    canReveal() {
+        return this.inCurrentHand && !this.cardsRevealed;
     }
 
     canCheck() {
@@ -342,10 +358,7 @@ class Player {
     }
 
     call() {
-        this.bet(this.game.getHighestBet() - this.currentBet);
-        this.character.say(`I bet ${formatMoney(this.currentBet)}.`);
-        this.hasTakenActionSinceLastRaise = true;
-        this.game.waitingForActivePlayerAction = false;
+        this.bet(this.game.getHighestBet());
     }
 
     raise() {
