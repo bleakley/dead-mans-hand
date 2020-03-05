@@ -97,6 +97,13 @@ export class Controller {
                     playerTookAction = true;
                 }
                 break;
+            case 83: // s
+                if (player.activePokerPlayerRole && player.activePokerPlayerRole.canReveal()) {
+                    player.activePokerPlayerRole.revealCards();
+                    player.activePokerPlayerRole.game.activePlayer = player.activePokerPlayerRole.game.getNextPlayer(player.activePokerPlayerRole, true);
+                    playerTookAction = true;
+                }
+                break;
             case 189: // minus
                 if (player.activePokerPlayerRole && player.activePokerPlayerRole.canCall()) {
                     this.view.tempBetValue -= 100;

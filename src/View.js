@@ -272,6 +272,12 @@ export class View {
                 this.tempBetValue = Math.min(maxBet, this.tempBetValue);
                 let canIncrease = this.tempBetValue < maxBet;
                 let canDecrease = this.tempBetValue > minBet;
+                if (pokerRole.canReveal()) {
+                    commands.push({
+                        key: 'S',
+                        description: 'show cards'
+                    });
+                }
                 if (pokerRole.canFold()) {
                     commands.push({
                         key: 'F',
@@ -306,10 +312,6 @@ export class View {
                         });
                     }
                 }
-                /*commands.push({
-                    key: 'B',
-                    description: 'bet'
-                });*/
             }
         }
 

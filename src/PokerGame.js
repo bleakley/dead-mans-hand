@@ -333,7 +333,7 @@ class Player {
     }
 
     canCheck() {
-        return this.isActivePlayer() && this.inCurrentHand && (this.isAllIn() || this.isMatchingHighestBet());
+        return this.isActivePlayer() && this.inCurrentHand && this.game.round < 5 && (this.isAllIn() || this.isMatchingHighestBet());
     }
 
     canFold() {
@@ -341,7 +341,7 @@ class Player {
     }
 
     canCall() {
-        return this.isActivePlayer() && this.inCurrentHand && !this.isAllIn() && this.currentBet < this.game.getHighestBet();
+        return this.isActivePlayer() && this.inCurrentHand && this.game.round < 5 && !this.isAllIn() && this.currentBet < this.game.getHighestBet();
     }
 
     fold() {
