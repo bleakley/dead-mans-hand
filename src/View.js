@@ -261,6 +261,12 @@ export class View {
 
         let pokerRole = this.game.player.activePokerPlayerRole;
         if (pokerRole) {
+            if (pokerRole) {
+                commands.push({
+                    key: 'Q',
+                    description: `quit poker game`
+                });
+            }
             commands.push({
                 key: 'P',
                 description: this.showPokerView ? 'hide poker' : 'show poker'
@@ -333,7 +339,6 @@ export class View {
     }
 
     drawSidebar() {
-        let sidebarX = GAME_WINDOW_WIDTH + 1;
         let character = this.game.player;
         this.drawSidebarRow(0, character.name);
 
@@ -483,6 +488,9 @@ export class View {
             this.display.drawText(displayCoords.x + 2, displayCoords.y + 1, `Blinds: ${formatMoney(pokerGame.smallBlind)}/${formatMoney(pokerGame.bigBlind)}`);
             this.display.drawText(displayCoords.x + 2, displayCoords.y + 2, `Pot: ${formatMoney(pokerGame.getPot())}`);
             this.display.drawText(displayCoords.x + 2, displayCoords.y + 3, `Common: ${formatCards(pokerGame.communityCards)}`);
+            if (pokerGame.unclaimedMoneyOnTable) {
+                //this.display.drawText(displayCoords.x + 2, displayCoords.y + 4, `Unclaimed money: ${formatMoney(pokerGame.unclaimedMoneyOnTable)}`);
+            }
         }
 
     }

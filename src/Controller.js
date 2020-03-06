@@ -104,10 +104,16 @@ export class Controller {
                     playerTookAction = true;
                 }
                 break;
-            case 68: // s
+            case 68: // d
                 if (player.activePokerPlayerRole && player.activePokerPlayerRole.isDealer() && player.activePokerPlayerRole.game.waitingForDealerAction) {
                     player.activePokerPlayerRole.deal();
                     playerTookAction = true;
+                }
+                break;
+            case 81: // q
+                if (player.activePokerPlayerRole) {
+                    player.activePokerPlayerRole.game.removePlayer(player.activePokerPlayerRole);
+                    this.view.showPokerView = false;
                 }
                 break;
             case 189: // minus

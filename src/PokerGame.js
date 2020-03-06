@@ -32,7 +32,7 @@ export class PokerGame {
     }
 
     getPot() {
-        return this.players.reduce((p, c) => p + c.currentBet, 0);
+        return this.players.reduce((p, c) => p + c.currentBet, 0) + this.unclaimedMoneyOnTable;
     }
 
     getHighestBet() {
@@ -43,6 +43,20 @@ export class PokerGame {
         let player = new Player(this, character);
         this.playersWaitingToJoinHand.push(player);
         return player;
+    }
+
+    removePlayer(player) {
+        if (player === this.activePlayer) {
+            this.activePlayer = this.getNextPlayer(player, true);
+        }
+        if (player === this.dealer) {
+            this.dealer = this.players[0];
+        }
+        _.remove(this.players, player);
+        _.remove(this.playersWaitingToJoinHand, player);
+        this.unclaimedMoneyOnTable += player.currentBet;
+        player.character.cents -= player.currentBet;
+        player.character.activePokerPlayerRole = null;
     }
 
     orderPlayers() {
@@ -207,6 +221,9 @@ export class PokerGame {
             unassignedPlayers = _.difference(unassignedPlayers, smallestBetPlayers).sort((a, b) => a.stake - b.stake);
             unassignedPlayers.map(p => p.stake -= eachPlayersContribution);
         } while (unassignedPlayers.length);
+
+        pots[pots.length - 1].amount += this.unclaimedMoneyOnTable;
+        this.unclaimedMoneyOnTable = 0;
 
         pots.forEach(pot => {
             let bestHandInPot = { comboRank: -1 };
