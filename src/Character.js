@@ -236,3 +236,21 @@ export class Priest extends Character {
 
     }
 }
+
+export class ShopKeep extends Character {
+    constructor() {
+        super(
+            _.sample([0, 0, 1, 2]), // Level
+            _.sample([0, 1, 1, 2]), // Strength
+            _.sample([0, 0, 1, 2]), // Quickness
+            _.sample([0, 0, 0, 1]), // Cunning
+            _.sample([0, 0, 0, 1]), // Guile
+            _.sample([0, 0, 0, 1]), // Grit
+        );
+        this.name = `${_.sample(MALE_NAMES)} ${_.sample(LAST_NAMES)}`;
+        this.symbol = '@';
+
+        this.cents = 8000;
+
+    }
+}
