@@ -70,15 +70,15 @@ export class Town extends Site {
         this.tiles[poker_table_left][poker_table_top] = TILE_POKER_TABLE;
 
         this.tiles[left + 6][top + height] = TILE_WOOD_DOOR;
-
-        let npc = this.map.game.addCharacter(new Scoundrel(), this.left + poker_table_left, this.top + poker_table_top - 1);
-        let npc2 = this.map.game.addCharacter(new Scoundrel(), this.left + poker_table_left - 1, this.top + poker_table_top);
-        let npc3 = this.map.game.addCharacter(new Scoundrel(), this.left + poker_table_left, this.top + poker_table_top + 1);
         
         let poker = this.map.game.addPokerGame(this.left + poker_table_left, this.top + poker_table_top);
-        npc.join(poker);
-        npc2.join(poker);
-        npc3.join(poker);
+        
+        for (let coordinates of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+            if (_.sample([true, false])) {
+                let npc = this.map.game.addCharacter(new Scoundrel(), this.left + poker_table_left + coordinates[0], this.top + poker_table_top + coordinates[1]);
+                npc.join(poker);
+            }
+        }
     }
 
     createChurch(top, left, width, height) {
