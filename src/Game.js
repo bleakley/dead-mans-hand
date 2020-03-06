@@ -8,6 +8,7 @@ export class Game {
         this.turn = 0;
         this.characters = [];
         this.pokerGames = [];
+        this.projectiles = [];
         this.map = new Map(this);
 
         this.player = new PlayerCharacter();
@@ -26,6 +27,10 @@ export class Game {
         let pokerGame = new PokerGame(this, x, y);
         this.pokerGames.push(pokerGame);
         return pokerGame;
+    }
+
+    addProjectile(ammoType, isHit, source, target) {
+        this.projectiles.push({ ammoType, isHit, source, target });
     }
 
     getCharacters(x, y) {

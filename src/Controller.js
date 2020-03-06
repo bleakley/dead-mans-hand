@@ -162,6 +162,10 @@ export class Controller {
         }
         this.view.drawMap();
         this.view.drawOverlay();
+        let flash = this.view.drawMuzzleFlash();
+        if (flash) {
+            setTimeout(() => this.view.drawMap(), 50);
+        }
     }
 
     handleMouseMove(event) {

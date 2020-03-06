@@ -1,6 +1,8 @@
 import { GAME_WINDOW_WIDTH, GAME_WINDOW_HEIGHT, SIDEBAR_WIDTH, TILES, RANGE_POINT_BLANK, RANGE_CLOSE, RANGE_MEDIUM, RANGE_LONG, formatMoney } from './Constants';
 import _ from 'lodash';
 
+import bresenham from 'bresenham';
+
 const halfWidth = Math.floor(GAME_WINDOW_WIDTH / 2);
 const halfHeight = Math.floor(GAME_WINDOW_HEIGHT / 2);
 const widthOdd = GAME_WINDOW_WIDTH % 2 !== 0;
@@ -318,7 +320,7 @@ export class View {
                         });
                     }
                 }
-                
+
             }
             if (pokerRole && pokerRole.isDealer() && pokerRole.game.waitingForDealerAction) {
                 commands.push({
@@ -469,6 +471,27 @@ export class View {
         this.display.drawText(0, 0, `Turn: ${this.game.turn} Player: ${this.game.player.x},${this.game.player.y}`);
         this.display.drawText(0, 1, `(Mouse) Map: ${mouseMap.x},${mouseMap.y} Display: ${mouseDisplay.x},${mouseDisplay.y}`);
         this.drawTooltip();
+    }
+
+    drawMuzzleFlash() {
+        let somethingDrawn = false;
+        this.game.projectiles.forEach(projectile => {
+            if (projectile.ammoType === 'bullets' || projectile.ammoType === 'buckshot') {
+                let points = bresenham(projectile.source.x, projectile.source.y, projectile.target.x, projectile.target.y);
+                if (projectile.ammoType === 'bullets') {
+                    points = points.slice(1, 2);
+                } else if (projectile.ammoType === 'buckshot') {
+                    points = points.slice(1, 3);
+                }
+                points.forEach(point => {
+                    let { x: displayX, y: displayY } = this.mapCoordsToDisplayCoords(point);
+                    this.display.draw(displayX, displayY, '*', 'orange', 'white');
+                    somethingDrawn = true;
+                });
+            }
+        });
+        this.game.projectiles = [];
+        return somethingDrawn;
     }
 
     getTarget() {

@@ -166,7 +166,7 @@ export class Character {
             return false;
         }
 
-        if(weapon.capacity && weapon.currentAmmo < 1) {
+        if (weapon.capacity && weapon.currentAmmo < 1) {
             return false;
         }
 
@@ -189,11 +189,15 @@ export class Character {
 
         weapon.currentAmmo--;
 
+        if (weapon.ammoType) {
+            this.game.addProjectile(weapon.ammoType, hit, { x: this.x, y: this.y }, { x: target.x, y: target.y });
+        }
+
         if (!hit) {
             return;
         }
 
-        let {min, max} = this.getDamageWithWeapon(weapon);
+        let { min, max } = this.getDamageWithWeapon(weapon);
         let damageRoll = _.random(min, max) + rangeBonus;
         let targetKilled = target.takeDamage(damageRoll);
 
