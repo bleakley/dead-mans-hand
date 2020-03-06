@@ -108,6 +108,8 @@ export const TILE_WOOD_FLOOR = next();
 export const TILE_WOOD_WALL = next();
 export const TILE_WOOD_DOOR = next();
 export const TILE_POKER_TABLE = next();
+export const TILE_BENCH = next();
+export const TILE_CROSS = next();
 
 export const TILES = {};
 TILES[TILE_DIRT_1] = {
@@ -161,7 +163,7 @@ TILES[TILE_WATER] = {
 TILES[TILE_WOOD_FLOOR] = {
     name: 'wood floor',
     symbols: ['='],
-    fore: 'white',
+    fore: 'goldenrod',
     back: 'darkgoldenrod',
     blocksMove: false,
     blocksVision: false
@@ -189,6 +191,22 @@ TILES[TILE_POKER_TABLE] = {
     back: 'brown',
     blocksMove: true,
     blocksVision: false
+};
+TILES[TILE_BENCH] = {
+    name: 'bench',
+    symbols: ['–'],
+    fore: 'white',
+    back: 'darkgoldenrod',
+    blocksMove: false,
+    blocksVision: true
+};
+TILES[TILE_CROSS] = {
+    name: 'cross',
+    symbols: ['†'],
+    fore: 'white',
+    back: 'darkgoldenrod',
+    blocksMove: false,
+    blocksVision: true
 };
 
 export const MALE_NAMES = [

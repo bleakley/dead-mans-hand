@@ -263,3 +263,39 @@ export class Scoundrel extends Character {
 
     }
 }
+
+export class Priest extends Character {
+    constructor() {
+        super(
+            _.sample([0, 1, 2, 4]), // Level
+            _.sample([0, 1, 1, 2]), // Strength
+            _.sample([0, 1, 2, 2]), // Quickness
+            _.sample([0, 0, 0, 1]), // Cunning
+            _.sample([0, 1, 2, 3]), // Guile
+            _.sample([0, 1, 2, 3]), // Grit
+        );
+        this.name = `${_.sample(MALE_NAMES)} ${_.sample(LAST_NAMES)}`;
+        this.symbol = '@';
+
+        this.cents = 2000;
+
+    }
+}
+
+export class ShopKeep extends Character {
+    constructor() {
+        super(
+            _.sample([0, 0, 1, 2]), // Level
+            _.sample([0, 1, 1, 2]), // Strength
+            _.sample([0, 0, 1, 2]), // Quickness
+            _.sample([0, 0, 0, 1]), // Cunning
+            _.sample([0, 0, 0, 1]), // Guile
+            _.sample([0, 0, 0, 1]), // Grit
+        );
+        this.name = `${_.sample(MALE_NAMES)} ${_.sample(LAST_NAMES)}`;
+        this.symbol = '@';
+
+        this.cents = 8000;
+
+    }
+}

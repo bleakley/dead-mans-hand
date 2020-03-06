@@ -3,11 +3,11 @@ import _ from 'lodash';
 import { Town } from './Site';
 
 export class Map {
-    constructor() {
+    constructor(game) {
         this.seed = _.random(1000);
-
+        this.game = game
         this.sites = [
-            new Town(-40, -40, 60, 60, this.seed)
+            new Town(-40, -40, 60, 60, this.seed, this)
         ];
 
     }
