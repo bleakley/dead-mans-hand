@@ -1,5 +1,5 @@
-import { TILE_DIRT_1, TILE_DIRT_2, TILE_WOOD_FLOOR, TILE_WOOD_WALL, TILE_WOOD_DOOR, TILE_POKER_TABLE } from './Constants';
-import { Scoundrel } from './Character';
+import { TILE_DIRT_1, TILE_DIRT_2, TILE_WOOD_FLOOR, TILE_WOOD_WALL, TILE_WOOD_DOOR, TILE_POKER_TABLE, TILE_BENCH, TILE_CROSS } from './Constants';
+import { Scoundrel, Priest } from './Character';
 
 export class Site {
     constructor(top, left, width, height, seed, map) {
@@ -33,6 +33,7 @@ export class Town extends Site {
         this.createGround();
         this.createSaloon(30, 30, 10, 10);
         this.createSaloon(10, 10, 10, 10);
+        this.createChurch(35, 10, 8, 12)
     }
 
     createGround() {
@@ -77,6 +78,40 @@ export class Town extends Site {
         npc.join(poker);
         npc2.join(poker);
         npc3.join(poker);
+    }
+
+    createChurch(top, left, width, height) {
+        for (let x = left; x < left + width; x++) {
+            for (let y = top; y < top + height; y++) {
+                this.tiles[x][y] = TILE_WOOD_FLOOR;
+            }
+        }
+
+        for (let x = left; x < left + width; x++) {
+            this.tiles[x][top] = TILE_WOOD_WALL;
+            this.tiles[x][top + height] = TILE_WOOD_WALL;
+        }
+
+        for (let y = top; y < top + height; y++) {
+            this.tiles[left][y] = TILE_WOOD_WALL;
+            this.tiles[left + width][y] = TILE_WOOD_WALL;
+        }
+        this.tiles[left + width][top + height] = TILE_WOOD_WALL;
+
+        this.tiles[left + width/2][top + height] = TILE_WOOD_DOOR;
+        this.tiles[left + width/2][top + 1] = TILE_CROSS;
+
+        // Create pews
+        for (let x = left + 1; x < left + width; x++) {
+            for (let y = top + 3; y < top + height; y += 2) {
+                if (x != left + width/2) {
+                    this.tiles[x][y] = TILE_BENCH;
+                }
+            }
+        }
+
+        
+        let npc = this.map.game.addCharacter(new Priest(), this.left + left + width/2, this.top + top + 2);
     }
 
 }
