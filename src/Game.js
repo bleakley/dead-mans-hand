@@ -1,25 +1,17 @@
 import { Map } from './Map'
-import { PlayerCharacter, Scoundrel } from './Character';
+import { PlayerCharacter } from './Character';
 import { TILES } from './Constants';
 import { PokerGame } from './PokerGame';
 
 export class Game {
     constructor() {
-        this.map = new Map();
         this.turn = 0;
         this.characters = [];
         this.pokerGames = [];
+        this.map = new Map(this);
 
         this.player = new PlayerCharacter();
         this.addCharacter(this.player, -2, 2);
-        let npc = this.addCharacter(new Scoundrel(), -5, -6);
-        let npc2 = this.addCharacter(new Scoundrel(), -6, -5);
-        let npc3 = this.addCharacter(new Scoundrel(), -4, -4);
-
-        let poker = this.addPokerGame(-5, -5);
-        npc.join(poker);
-        npc2.join(poker);
-        npc3.join(poker);
     }
 
     addCharacter(character, x, y) {
