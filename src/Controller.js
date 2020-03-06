@@ -83,6 +83,13 @@ export class Controller {
                     playerTookAction = true;
                 }
                 break;
+            case 65: // a
+                let target = this.view.getTarget();
+                if (target && player.canAttack(target)) {
+                    player.attack(this.view.getTarget());
+                    playerTookAction = true;
+                }
+                break;
             case 66: // b
                 if (player.activePokerPlayerRole && player.activePokerPlayerRole.canCall()) {
                     player.activePokerPlayerRole.bet(this.view.tempBetValue);

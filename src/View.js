@@ -328,6 +328,14 @@ export class View {
             }
         }
 
+        let target = this.getTarget();
+        if (target && player.canAttack(target)) {
+            commands.push({
+                key: 'A',
+                description: `attack with ${player.getCurrentWeapon().name}`
+            });
+        }
+
         return commands;
     }
 
@@ -461,6 +469,15 @@ export class View {
         this.display.drawText(0, 0, `Turn: ${this.game.turn} Player: ${this.game.player.x},${this.game.player.y}`);
         this.display.drawText(0, 1, `(Mouse) Map: ${mouseMap.x},${mouseMap.y} Display: ${mouseDisplay.x},${mouseDisplay.y}`);
         this.drawTooltip();
+    }
+
+    getTarget() {
+        let mapCoords = this.showCursor ? this.getMapCursorCoords() : this.getMapMouseCoords();
+        let characters = this.game.getCharacters(mapCoords.x, mapCoords.y);
+        if (characters.length) {
+            return characters[0];
+        }
+        return null;
     }
 
     drawTooltip() {

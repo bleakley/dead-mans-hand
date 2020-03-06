@@ -1,4 +1,4 @@
-import { MALE_NAMES, LAST_NAMES, RANGE_POINT_BLANK, RANGE_CLOSE, RANGE_MEDIUM, RANGE_LONG } from "./Constants";
+import { MALE_NAMES, LAST_NAMES, RANGE_POINT_BLANK, RANGE_CLOSE, RANGE_MEDIUM, RANGE_LONG, RANGES } from "./Constants";
 import { Fist, Revolver, Knife, CanOfBeans, Shotgun, Bow } from "./Item";
 
 export class Character {
@@ -70,7 +70,7 @@ export class Character {
     }
 
     getDefense() {
-        return Math.floor(this.level / 2) + this.grit;
+        return 10 + Math.floor(this.level / 2) + this.grit;
     }
 
     startTurn() {
@@ -158,21 +158,66 @@ export class Character {
         return { min, max };
     }
 
-    attack(target) {
-        let weapon = getCurrentWeapon();
+    canAttack(target) {
+        let weapon = this.getCurrentWeapon();
         let distance = this.distanceBetween(target);
-        let range = [RANGE_POINT_BLANK, RANGE_CLOSE, RANGE_MEDIUM, RANGE_LONG].find(r => distance >= r.min && distance <= r.max);
+        let range = [RANGE_POINT_BLANK, RANGE_CLOSE, RANGE_MEDIUM, RANGE_LONG].find(r => distance >= RANGES[r].min && distance <= RANGES[r].max);
         if (range > weapon.maximumRange) {
-            console.log('out of range');
             return false;
         }
 
-        let attackBonus = (weapon.isMelee ? this.getMeleeAttack() : this.getRangedAttack()) + weapon.rangeModifiers[range];
+        if(weapon.capacity && weapon.currentAmmo < 1) {
+            return false;
+        }
+
+        return true;
+    }
+
+    attack(target) {
+        let weapon = this.getCurrentWeapon();
+        let distance = this.distanceBetween(target);
+        let range = [RANGE_POINT_BLANK, RANGE_CLOSE, RANGE_MEDIUM, RANGE_LONG].find(r => distance >= RANGES[r].min && distance <= RANGES[r].max);
+
+        let rangeBonus = weapon.rangeModifiers[range];
+
+        let attackBonus = weapon.isMelee ? this.getMeleeAttack() : (this.getRangedAttack() + rangeBonus);
         let attackRoll = _.random(1, 20);
         let total = attackBonus + attackRoll;
         let ac = target.getDefense();
         let hit = total >= ac;
         console.log(`${this.name} attacks ${target.name} with his ${weapon.name}. [${attackRoll}] + ${attackBonus} vs ${ac} : ${hit ? 'Hit' : 'Miss'}!`);
+
+        weapon.currentAmmo--;
+
+        if (!hit) {
+            return;
+        }
+
+        let {min, max} = this.getDamageWithWeapon(weapon);
+        let damageRoll = _.random(min, max) + rangeBonus;
+        let targetKilled = target.takeDamage(damageRoll);
+
+    }
+
+    takeDamage(damage) {
+        this.health = Math.max(this.health - damage, 0);
+        this.vigilance = Math.max(this.vigilance - damage, 0);
+
+        console.log(`${this.name} takes ${damage} damage.`);
+
+        if (this.health <= 0) {
+            this.die();
+            return true;
+        }
+        return false;
+    }
+
+    die() {
+        if (this.activePokerPlayerRole) {
+            this.activePokerPlayerRole.game.removePlayer(this.activePokerPlayerRole);
+        }
+        _.remove(this.game.characters, this);
+        console.log(`${this.name} has died. RIP`);
     }
 
     distanceBetween(other) {

@@ -26,6 +26,7 @@ export class Game {
         this.characters.push(character);
         character.x = x;
         character.y = y;
+        character.game = this;
         return character;
     }
 

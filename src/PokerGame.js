@@ -46,6 +46,7 @@ export class PokerGame {
     }
 
     removePlayer(player) {
+        player.discardCards();
         if (player === this.activePlayer) {
             this.activePlayer = this.getNextPlayer(player, true);
         }
