@@ -45,10 +45,10 @@ export class PokerGame {
         return player;
     }
 
-    getNextPlayer(previousPlayer, inCurrentHand) {
+    orderPlayers() {
         const clockwiseOrder = ['0,-1', '1,-1', '1,0', '1,1', '0,1', '-1,1', '-1,0', '-1,-1'];
 
-        let playersOrderedClockwise = (inCurrentHand ? this.players.filter(p => p.inCurrentHand) : this.players).sort((p1, p2) => {
+        this.players = this.players.sort((p1, p2) => {
             let i1 = clockwiseOrder.findIndex(p => p === `${p1.character.x - this.x},${p1.character.y - this.y}`);
             let i2 = clockwiseOrder.findIndex(p => p === `${p2.character.x - this.x},${p2.character.y - this.y}`);
             if (i1 === -1 || i2 === -1) {
@@ -56,6 +56,12 @@ export class PokerGame {
             }
             return i1 - i2;
         });
+    }
+
+    getNextPlayer(previousPlayer, inCurrentHand) {
+
+        this.orderPlayers();
+        let playersOrderedClockwise = inCurrentHand ? this.players.filter(p => p.inCurrentHand) : this.players;
 
         let position = playersOrderedClockwise.findIndex(p => p === previousPlayer);
         let nextPosition = position + 1;

@@ -104,6 +104,12 @@ export class Controller {
                     playerTookAction = true;
                 }
                 break;
+            case 68: // s
+                if (player.activePokerPlayerRole && player.activePokerPlayerRole.isDealer() && player.activePokerPlayerRole.game.waitingForDealerAction) {
+                    player.activePokerPlayerRole.deal();
+                    playerTookAction = true;
+                }
+                break;
             case 189: // minus
                 if (player.activePokerPlayerRole && player.activePokerPlayerRole.canCall()) {
                     this.view.tempBetValue -= 100;

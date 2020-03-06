@@ -312,6 +312,13 @@ export class View {
                         });
                     }
                 }
+                
+            }
+            if (pokerRole && pokerRole.isDealer() && pokerRole.game.waitingForDealerAction) {
+                commands.push({
+                    key: 'D',
+                    description: `deal`
+                });
             }
         }
 
