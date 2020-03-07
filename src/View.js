@@ -76,9 +76,17 @@ export class View {
         }
     }
 
+    isMapSpaceInView(space) {
+        let {x, y} = this.mapCoordsToDisplayCoords(space);
+        if (x < 0 || y < 0 || x >= GAME_WINDOW_WIDTH || y >= GAME_WINDOW_HEIGHT) {
+            return false;
+        }
+        return true;
+    }
+
     cycleTargets() {
         if (this.showCursor) {
-            let possibleTargets = this.game.characters.filter(c => c.isNPC).sort((a, b) => a.distanceBetween(this.game.player) - b.distanceBetween(this.game.player));
+            let possibleTargets = this.game.characters.filter(c => c.isNPC && this.isMapSpaceInView(c)).sort((a, b) => a.distanceBetween(this.game.player) - b.distanceBetween(this.game.player));
             let cursorCoordsOnMap = this.getMapCursorCoords();
             let currentTargetedCharacters = this.game.getCharacters(cursorCoordsOnMap.x, cursorCoordsOnMap.y);
             if (currentTargetedCharacters.length) {
