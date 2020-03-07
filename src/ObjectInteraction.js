@@ -12,11 +12,12 @@ export class ItemPurchase extends ObjectInteraction {
         super(object, 'Purchase ' + item.name + ' (' + formatMoney(price) + ')');
         this.price = price;
         this.owner = owner
+        this.item = item
     }
 
     onInteract(character) {
         if (character.cents >= this.price) {
-            character.inventory.push(item);
+            character.inventory.push(this.item);
             character.cents -= this.price;
             this.owner.cents += this.price;
             this.object.delete()
@@ -28,10 +29,11 @@ export class ItemSteal extends ObjectInteraction {
     constructor(object, owner, item) {
         super(object, 'Steal ' + item.name);
         this.owner = owner
+        this.item = item;
     }
 
     onInteract(character) {
-        character.inventory.push(item);
+        character.inventory.push(this.item);
         this.object.delete()
     }
 }

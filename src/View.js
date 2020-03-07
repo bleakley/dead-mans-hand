@@ -344,7 +344,7 @@ export class View {
 
         let interactionCount = 0;
         let interactionCommands = []
-        for (let interaction of player.getAllowedObjectInteractions()) {
+        for (let interaction of player.getAllowedInteractions()) {
             interactionCount += 1;
             interactionCommands.push({
                 key: interactionCount.toString(),

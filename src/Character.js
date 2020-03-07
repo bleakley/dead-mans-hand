@@ -237,7 +237,7 @@ export class Character {
         return objects;
     }
 
-    getAllowedObjectInteractions() {
+    getAllowedInteractions() {
         let interactions = [];
         for (let object of this.getAdjacentObjects()) {
             interactions = interactions.concat(object.interactions);
