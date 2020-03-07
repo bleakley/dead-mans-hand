@@ -328,17 +328,33 @@ class Player {
         return Math.min(this.game.getHighestBet(), Math.max(this.character.cents, 1));
     }
 
+    getMaxValidRaise() {
+        let highestOtherStackInHand = this.game.players.filter(p => p.inCurrentHand && p !== this).reduce((prevMax, player) => Math.max(prevMax, player.character.cents), 0);
+        return Math.min(this.character.cents - this.getCallAmount(), highestOtherStackInHand);
+    }
+
+    getMinValidRaise() {
+        return Math.min(this.getCallAmount(), this.character.cents - this.getCallAmount());
+    }
+
     bet(amount) {
-        let maxBet = Math.min(this.character.cents, amount);
-        if (maxBet > this.game.getHighestBet()) {
-            this.game.players.map(p => p.hasTakenActionSinceLastRaise = false);
-        }
-        this.currentBet = maxBet;
+        this.currentBet += amount;
         this.game.lastPlayerToBet = this;
-        this.game.waitingForActivePlayerAction = false;
-        this.character.say(`I bet ${formatMoney(this.currentBet)}.`);
+        this.character.say(`I bet ${formatMoney(amount)}.`);
         this.hasTakenActionSinceLastRaise = true;
         this.game.waitingForActivePlayerAction = false;
+    }
+
+    call() {
+        this.currentBet = this.game.getHighestBet();
+        this.game.lastPlayerToBet = this;
+        this.game.waitingForActivePlayerAction = false;
+        this.character.say(`I call.`);
+        this.hasTakenActionSinceLastRaise = true;
+    }
+
+    getCallAmount() {
+        return this.game.getHighestBet() - this.currentBet;
     }
 
     play() {
@@ -358,6 +374,14 @@ class Player {
 
     canCheck() {
         return this.isActivePlayer() && this.inCurrentHand && this.game.round < 5 && (this.isAllIn() || this.isMatchingHighestBet());
+    }
+
+    canBet() {
+        return this.canCheck();
+    }
+
+    canRaise() {
+        return this.canCall() && this.character.cents > this.getCallAmount();
     }
 
     canFold() {
@@ -382,11 +406,19 @@ class Player {
     }
 
     call() {
-        this.bet(this.game.getHighestBet());
+        this.currentBet += this.getCallAmount();
+        this.game.lastPlayerToBet = this;
+        this.character.say(`I call.`);
+        this.hasTakenActionSinceLastRaise = true;
+        this.game.waitingForActivePlayerAction = false;
     }
 
-    raise() {
-
+    raise(amount) {
+        this.currentBet += this.getCallAmount() + amount;
+        this.game.lastPlayerToBet = this;
+        this.character.say(`I raise ${formatMoney(amount)}.`);
+        this.hasTakenActionSinceLastRaise = true;
+        this.game.waitingForActivePlayerAction = false;
     }
 
     revealCards() {

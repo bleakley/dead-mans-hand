@@ -26,6 +26,7 @@ export class View {
 
         this.showPokerView = false;
         this.tempBetValue = 0;
+        this.tempRaiseValue = 0;
 
         this.messageLog = [];
     }
@@ -328,10 +329,16 @@ export class View {
             if (pokerRole.isActivePlayer()) {
                 let minBet = pokerRole.getMinValidBet();
                 let maxBet = pokerRole.getMaxValidBet();
+                let minRaise = pokerRole.getMinValidRaise();
+                let maxRaise = pokerRole.getMaxValidRaise();
                 this.tempBetValue = Math.max(minBet, this.tempBetValue);
                 this.tempBetValue = Math.min(maxBet, this.tempBetValue);
-                let canIncrease = this.tempBetValue < maxBet;
-                let canDecrease = this.tempBetValue > minBet;
+                this.tempRaiseValue = Math.max(minBet, this.tempRaiseValue);
+                this.tempRaiseValue = Math.min(maxBet, this.tempRaiseValue);
+                let canIncreaseBet = this.tempBetValue < maxBet;
+                let canDecreaseBet = this.tempBetValue > minBet;
+                let canIncreaseRaise = this.tempRaiseValue < maxRaise;
+                let canDecreaseRaise = this.tempRaiseValue > minRaise;
                 if (pokerRole.canReveal()) {
                     commands.push({
                         key: 'S',
@@ -352,27 +359,48 @@ export class View {
                 }
                 if (pokerRole.canCall()) {
                     commands.push({
+                        key: 'C',
+                        description: `call`
+                    });
+                    if (canIncreaseRaise && canDecreaseRaise) {
+                        commands.push({
+                            key: '+/-',
+                            description: `increase/decrease raise`
+                        });
+                    } else if (canIncreaseRaise) {
+                        commands.push({
+                            key: '+',
+                            description: `increase raise`
+                        });
+                    } else if (canDecreaseRaise) {
+                        commands.push({
+                            key: '-',
+                            description: `decrease raise`
+                        });
+                    }
+                }
+                if (pokerRole.canBet()) {
+                    commands.push({
                         key: 'B',
                         description: `bet ${formatMoney(this.tempBetValue)}`
                     });
-                    if (canIncrease && canDecrease) {
+                    if (canIncreaseBet && canDecreaseBet) {
                         commands.push({
                             key: '+/-',
                             description: `increase/decrease bet`
                         });
-                    } else if (canIncrease) {
+                    } else if (canIncreaseBet) {
                         commands.push({
                             key: '+',
                             description: `increase bet`
                         });
-                    } else if (canDecrease) {
+                    } else if (canDecreaseBet) {
                         commands.push({
                             key: '-',
                             description: `decrease bet`
                         });
                     }
                 }
-
             }
             if (pokerRole && pokerRole.isDealer() && pokerRole.game.waitingForDealerAction) {
                 commands.push({
