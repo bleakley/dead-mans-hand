@@ -13,7 +13,7 @@ export class Game {
         this.map = new Map(this);
 
         this.player = new PlayerCharacter();
-        this.addCharacter(this.player, -2, 2);
+        this.addCharacter(this.player, 0, 0);
     }
 
     addCharacter(character, x, y) {

@@ -31,12 +31,34 @@ export class Site {
 export class Town extends Site {
     constructor(top, left, width, height, seed, map) {
         super(top, left, width, height, seed, map);
-
+        console.log('helo')
+        let parcels = [];
+        let parcelWidth = 16;
+        let padding = 4;
+        let roadWidth = 6;
+        let parcelTopNorth = height/2 + roadWidth/2;
+        let parcelTopSouth  = height/2 - roadWidth/2 - parcelWidth; 
+        for (let parcelLeft = padding; parcelLeft + parcelWidth < width - padding; parcelLeft += parcelWidth) {
+            parcels.push({ top: parcelTopNorth, left: parcelLeft, width: parcelWidth, height: parcelWidth, orientation: 'S'})
+            parcels.push({ top: parcelTopSouth, left: parcelLeft, width: parcelWidth, height: parcelWidth, orientation: 'N'})
+        } 
         this.createGround();
-        this.createSaloon(30, 30, 10, 10);
-        this.createSaloon(10, 10, 10, 10);
-        this.createChurch(35, 10, 8, 12)
-        this.createShop(10, 30, 8, 8);
+
+        let parcel = _.sample(parcels);
+        _.remove(parcels, parcel);
+        this.createSaloon(parcel.top, parcel.left, 10, 10);;
+
+        parcel = _.sample(parcels);
+        _.remove(parcels, parcel);
+        this.createSaloon(parcel.top, parcel.left, 10, 10);
+
+        parcel = _.sample(parcels);
+        _.remove(parcels, parcel);
+        this.createChurch(parcel.top, parcel.left, 8, 12);
+
+        parcel = _.sample(parcels);
+        _.remove(parcels, parcel);
+        this.createShop(parcel.top, parcel.left, 8, 8);
     }
 
     createGround() {
