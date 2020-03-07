@@ -1,5 +1,5 @@
 import { TILE_DIRT_1, TILE_DIRT_2, TILE_WOOD_FLOOR, TILE_WOOD_WALL, TILE_WOOD_DOOR, TILE_POKER_TABLE, TILE_BENCH, TILE_CROSS, TILE_VAULT_DOOR } from './Constants';
-import { Scoundrel, Priest, ShopKeep, Banker } from './Character';
+import { Scoundrel, Priest, ShopKeep, Banker, Marshal } from './Character';
 import { ShopItem } from './Object';
 import { CanOfBeans } from './Item';
 
@@ -31,7 +31,7 @@ export class Site {
 export class Town extends Site {
     constructor(top, left, width, height, seed, map) {
         super(top, left, width, height, seed, map);
-        
+
         let parcels = [];
         let parcelWidth = 16;
         let padding = 4;
@@ -190,6 +190,8 @@ export class Town extends Site {
         let bankerY = orientation === 'N' ? lobbyTop + 1 : vaultTop - 1;
 
         let banker = this.map.game.addCharacter(new Banker(this.top + vaultTop, this.left + left, width, vaultHeight), this.left + left + width/2, this.top + bankerY);
+        this.map.game.addCharacter(new Marshal(), this.left + left + width/2 + 2, this.top + bankerY);
+        this.map.game.addCharacter(new Marshal(), this.left + left + width/2 - 2, this.top + bankerY);
 
     }
 

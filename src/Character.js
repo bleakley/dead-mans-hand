@@ -1,5 +1,5 @@
 import { MALE_NAMES, LAST_NAMES, RANGE_POINT_BLANK, RANGE_CLOSE, RANGE_MEDIUM, RANGE_LONG, RANGES, XP_REQUIREMENTS } from "./Constants";
-import { Fist, Revolver, Knife, CanOfBeans, Shotgun, Bow } from "./Item";
+import { Fist, Revolver, Knife, CanOfBeans, Shotgun, VaultKey, Rifle } from "./Item";
 import { Body, ShopItem, Cash } from "./Object";
 import { ItemSell, MoneyWithdrawl, MoneyDeposit } from "./CharacterInteraction";
 
@@ -283,7 +283,6 @@ export class PlayerCharacter extends Character {
         this.inventory.push(new Knife());
         this.inventory.push(new CanOfBeans());
         this.inventory.push(new Shotgun(true));
-        this.inventory.push(new Bow());
     }
 
     gainXp(xp) {
@@ -306,6 +305,13 @@ export class PlayerCharacter extends Character {
 
     onAttack(target) {
         if (this.isPC) {
+            if (!target.isHostileTo(this)) {
+                this.game.characters.forEach(c => {
+                    if (c.isNPC) {
+                        c.opinionOfPC -= 2 * c.desires.attackProvokers;
+                    }
+                });
+            }
             target.opinionOfPC -= 20;
         }
     }
@@ -323,7 +329,9 @@ export class NonPlayerCharacter extends Character {
 
         this.desires = {
             gamble: 0,
-            travel: 0
+            travel: 0,
+            attackProvokers: 0,
+            defendBank: 0
         };
         this.winningStreak = 0;
         this.losingStreak = 0;
@@ -454,6 +462,8 @@ export class Scoundrel extends NonPlayerCharacter {
 
         this.cents = 2000;
 
+        this.desires.attackProvokers = 1;
+
     }
 
 }
@@ -536,19 +546,44 @@ export class ShopKeep extends NonPlayerCharacter {
     }
 }
 
+export class Marshal extends NonPlayerCharacter {
+    constructor() {
+        super(
+            _.sample([1, 2, 3, 4]), // Level
+            _.sample([0, 1, 2, 2]), // Strength
+            _.sample([0, 1, 1, 2]), // Quickness
+            _.sample([0, 0, 1, 1]), // Cunning
+            _.sample([0, 0, 1, 2]), // Guile
+            _.sample([1, 2, 3, 4]), // Grit
+        );
+        this.name = `${_.sample(MALE_NAMES)} ${_.sample(LAST_NAMES)}`;
+        this.symbol = '@';
+
+        this.cents = 4000;
+
+        this.desires.attackProvokers = 5;
+
+        this.inventory.push(new Rifle(true));
+        this.inventory.push(new Revolver(true));
+        this.bullets = 120;
+
+    }
+}
+
 export class Banker extends NonPlayerCharacter {
     constructor(top, left, width, height) {
         super(
             _.sample([0, 0, 1, 2]), // Level
             _.sample([0, 1, 1, 2]), // Strength
             _.sample([0, 0, 1, 2]), // Quickness
-            _.sample([0, 0, 0, 1]), // Cunning
+            _.sample([1, 2, 3, 4]), // Cunning
             _.sample([0, 0, 0, 1]), // Guile
             _.sample([0, 0, 0, 1]), // Grit
         );
         this.name = `${_.sample(MALE_NAMES)} ${_.sample(LAST_NAMES)}`;
         this.symbol = '@';
         this.inventory.push(new Revolver(true));
+        this.inventory.push(new VaultKey());
         this.bullets = 12;
         this.shopTop = top;
         this.shopLeft = left;
