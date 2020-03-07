@@ -34,7 +34,7 @@ export class ShopItem extends Object {
 
 export class Body extends Object {
     constructor(character) {
-        super('body (' + character.name + ')', 'X', 'white')
+        super('body (' + character.name + ')', '&', 'white')
         this.character = character;
     }
 

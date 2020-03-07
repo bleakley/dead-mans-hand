@@ -205,6 +205,7 @@ export class Controller {
         if (playerTookAction) {
             this.game.playTurn();
         }
+        this.view.drawMessageLog();
         this.view.drawMap();
         this.view.drawOverlay();
         let flash = this.view.drawMuzzleFlash();

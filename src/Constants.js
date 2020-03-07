@@ -1,6 +1,7 @@
 export const GAME_WINDOW_WIDTH = 55;
 export const GAME_WINDOW_HEIGHT = 45;
 export const SIDEBAR_WIDTH = 30;
+export const MESSAGE_LOG_HEIGHT = 10;
 
 export function fromSeed(seed, max = 1, min = 0) {
 
@@ -208,6 +209,30 @@ TILES[TILE_CROSS] = {
     blocksMove: false,
     blocksVision: true
 };
+
+export const XP_REQUIREMENTS = [
+    0,
+    10,
+    25,
+    50,
+    75,
+    100,
+    125,
+    150,
+    175,
+    200,
+    250,
+    300,
+    350,
+    400,
+    450,
+    500,
+    600,
+    700,
+    800,
+    900,
+    1000
+];
 
 export const MALE_NAMES = [
     'Abner',

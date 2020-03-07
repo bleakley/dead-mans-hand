@@ -1,4 +1,4 @@
-import { MALE_NAMES, LAST_NAMES, RANGE_POINT_BLANK, RANGE_CLOSE, RANGE_MEDIUM, RANGE_LONG, RANGES } from "./Constants";
+import { MALE_NAMES, LAST_NAMES, RANGE_POINT_BLANK, RANGE_CLOSE, RANGE_MEDIUM, RANGE_LONG, RANGES, XP_REQUIREMENTS } from "./Constants";
 import { Fist, Revolver, Knife, CanOfBeans, Shotgun, Bow } from "./Item";
 import { Body, ShopItem } from "./Object";
 import { ItemSell } from "./CharacterInteraction";
@@ -81,6 +81,16 @@ export class Character {
 
     takeTurn() {
         this.startTurn();
+
+        /*
+        Desires
+        gambling
+        travel
+        */
+
+        if (this.canReload() && !this.getCurrentWeapon().currentAmmo) {
+            this.reload();
+        }
 
         let pokerPlayerRole = this.activePokerPlayerRole;
         if (pokerPlayerRole && pokerPlayerRole.isActivePlayer() && pokerPlayerRole.game.waitingForActivePlayerAction) {
@@ -187,29 +197,34 @@ export class Character {
         let total = attackBonus + attackRoll;
         let ac = target.getDefense();
         let hit = total >= ac;
-        console.log(`${this.name} attacks ${target.name} with his ${weapon.name}. [${attackRoll}] + ${attackBonus} vs ${ac} : ${hit ? 'Hit' : 'Miss'}!`);
 
         weapon.currentAmmo--;
+        this.onAttack(target);
 
         if (weapon.ammoType) {
             this.game.addProjectile(weapon.ammoType, hit, { x: this.x, y: this.y }, { x: target.x, y: target.y });
         }
 
         if (!hit) {
+            this.game.log(`${this.name} attacks ${target.name} with his ${weapon.name}. [${attackRoll}] + ${attackBonus} vs ${ac} and misses.`);
             return;
         }
 
         let { min, max } = this.getDamageWithWeapon(weapon);
         let damageRoll = _.random(min, max) + rangeBonus;
         let targetKilled = target.takeDamage(damageRoll);
+        if (targetKilled) {
+            this.game.log(`${this.name} hits ${target.name} with his ${weapon.name}, dealing ${damageRoll} damage and killing him.`);
+            this.onKill(target);
+        } else {
+            this.game.log(`${this.name} hits ${target.name} with his ${weapon.name}, dealing ${damageRoll} damage.`);
+        }
 
     }
 
     takeDamage(damage) {
         this.health = Math.max(this.health - damage, 0);
         this.vigilance = Math.max(this.vigilance - damage, 0);
-
-        console.log(`${this.name} takes ${damage} damage.`);
 
         if (this.health <= 0) {
             this.die();
@@ -223,7 +238,6 @@ export class Character {
             this.activePokerPlayerRole.game.removePlayer(this.activePokerPlayerRole);
         }
         _.remove(this.game.characters, this);
-        console.log(`${this.name} has died. RIP`);
         this.game.addObject(new Body(this), this.x, this.y);
     }
 
@@ -276,16 +290,54 @@ export class PlayerCharacter extends Character {
         this.buckshot = 20;
         this.arrows = 20;
 
-        this.inventory.push(new Revolver());
+        this.inventory.push(new Revolver(true));
         this.inventory.push(new Knife());
         this.inventory.push(new CanOfBeans());
-        this.inventory.push(new Shotgun());
+        this.inventory.push(new Shotgun(true));
         this.inventory.push(new Bow());
+    }
+
+    gainXp(xp) {
+        this.xp += xp;
+        if (this.level < 20 && this.xp >= XP_REQUIREMENTS[this.level + 1]) {
+            // TODO: make this a choice
+            let attributeToImprove = _.sample(['strength', 'quickness', 'cunning', 'guile', 'grit']);
+            this.level++;
+            this[attributeToImprove]++;
+            this.game.log(`You have gained a level and improved your ${attributeToImprove}.`);
+        }
+    }
+
+    onWinHand() {
+        this.gainXp(3);
+    }
+
+    onLoseHand() {
+    }
+
+    onAttack(target) {
+    }
+
+    onKill(target) {
+        this.gainXp(5);
+    }
+}
+
+export class NonPlayerCharacter extends Character {
+    constructor(level, strength, quickness, cunning, guile, grit) {
+        super(level, strength, quickness, cunning, guile, grit);
+
+        this.desires = {
+            gamble: 0,
+            travel: 0
+        };
+        this.winningStreak = 0;
+        this.losingStreak = 0;
     }
 }
 
 
-export class Scoundrel extends Character {
+export class Scoundrel extends NonPlayerCharacter {
     constructor() {
         super(
             _.sample([0, 0, 1, 2]), // Level
@@ -301,9 +353,30 @@ export class Scoundrel extends Character {
         this.cents = 2000;
 
     }
+
+    onWinHand() {
+        this.winningStreak++;
+        this.losingStreak = 0;
+        this.desires.gamble++;
+        if (this.winningStreak > 1) {
+            this.desires.travel++;
+        }
+    }
+
+    onLoseHand() {
+        this.losingStreak++;
+        this.winningStreak = 0;
+        this.desires.travel++;
+    }
+
+    onAttack(target) {
+    }
+
+    onKill(target) {
+    }
 }
 
-export class Priest extends Character {
+export class Priest extends NonPlayerCharacter {
     constructor() {
         super(
             _.sample([0, 1, 2, 4]), // Level
@@ -321,7 +394,7 @@ export class Priest extends Character {
     }
 }
 
-export class ShopKeep extends Character {
+export class ShopKeep extends NonPlayerCharacter {
     constructor(top, left, width, height) {
         super(
             _.sample([0, 0, 1, 2]), // Level
@@ -333,7 +406,7 @@ export class ShopKeep extends Character {
         );
         this.name = `${_.sample(MALE_NAMES)} ${_.sample(LAST_NAMES)}`;
         this.symbol = '@';
-        this.inventory.push(new Revolver());
+        this.inventory.push(new Revolver(true));
         this.shopTop = top;
         this.shopLeft = left;
         this.shopWidth = width;

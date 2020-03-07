@@ -1,4 +1,4 @@
-import { GAME_WINDOW_WIDTH, GAME_WINDOW_HEIGHT, SIDEBAR_WIDTH, TILES, RANGE_POINT_BLANK, RANGE_CLOSE, RANGE_MEDIUM, RANGE_LONG, formatMoney } from './Constants';
+import { GAME_WINDOW_WIDTH, GAME_WINDOW_HEIGHT, SIDEBAR_WIDTH, MESSAGE_LOG_HEIGHT, TILES, RANGE_POINT_BLANK, RANGE_CLOSE, RANGE_MEDIUM, RANGE_LONG, XP_REQUIREMENTS, formatMoney } from './Constants';
 import _ from 'lodash';
 
 import bresenham from 'bresenham';
@@ -26,6 +26,16 @@ export class View {
 
         this.showPokerView = false;
         this.tempBetValue = 0;
+
+        this.messageLog = [];
+    }
+
+    log(message) {
+        this.messageLog.unshift(message);
+        if (this.messageLog.length > MESSAGE_LOG_HEIGHT) {
+            this.messageLog.pop();
+        }
+        console.log(message);
     }
 
     clearControls() {
@@ -183,6 +193,17 @@ export class View {
         this.drawUtterances();
         this.drawOverlay();
         this.drawCursor();
+    }
+
+    drawMessageLog() {
+        for (let x = 0; x < GAME_WINDOW_WIDTH + SIDEBAR_WIDTH; x++) {
+            for (let y = 0; y < MESSAGE_LOG_HEIGHT; y++) {
+                this.display.draw(x, y + GAME_WINDOW_HEIGHT, ' ');
+            }
+        }
+        this.messageLog.forEach((message, i) => {
+            this.display.drawText(0, GAME_WINDOW_HEIGHT + i, message);
+        });
     }
 
     drawUtterances() {
@@ -372,7 +393,7 @@ export class View {
         this.drawSidebarRow(4, 'Subterfuge:', `${character.isPC ? character.subterfuge : '?'}/${character.getMaxSubterfuge()}`);
         this.drawSidebarRow(5, 'Money:', formatMoney(character.cents));
 
-        this.drawSidebarRow(7, 'Level ' + character.level, character.xp + ' xp');
+        this.drawSidebarRow(7, 'Level ' + character.level, `${character.xp}/${XP_REQUIREMENTS[character.level+1]} xp`);
         this.drawSidebarRow(8, 'Strength', character.strength);
         this.drawSidebarRow(9, 'Quickness', character.quickness);
         this.drawSidebarRow(10, 'Cunning', character.cunning);

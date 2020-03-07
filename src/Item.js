@@ -127,7 +127,7 @@ export class Bow extends RangedWeapon {
 
         this.drawDelay = 2;
         this.capacity = 1;
-        this.ammoType = 'arrows'
+        this.ammoType = 'arrows';
 
         this.minDamage = 2;
         this.maxDamageBase = 0;
@@ -141,13 +141,16 @@ export class Bow extends RangedWeapon {
 }
 
 export class Pistol extends RangedWeapon {
-    constructor() {
+    constructor(loaded) {
         super();
         this.name = 'pistol';
 
         this.drawDelay = 1;
         this.capacity = 1;
-        this.ammoType = 'bullets'
+        this.ammoType = 'bullets';
+        if (loaded) {
+            this.currentAmmo = this.capacity;
+        }
 
         this.minDamage = 1;
         this.maxDamageBase = 4;
@@ -161,13 +164,16 @@ export class Pistol extends RangedWeapon {
 }
 
 export class Revolver extends RangedWeapon {
-    constructor() {
+    constructor(loaded) {
         super();
         this.name = 'revolver';
 
         this.drawDelay = 1;
         this.capacity = 6;
-        this.ammoType = 'bullets'
+        this.ammoType = 'bullets';
+        if (loaded) {
+            this.currentAmmo = this.capacity;
+        }
 
         this.minDamage = 1;
         this.maxDamageBase = 5;
@@ -181,13 +187,16 @@ export class Revolver extends RangedWeapon {
 }
 
 export class Rifle extends RangedWeapon {
-    constructor() {
+    constructor(loaded) {
         super();
         this.name = 'rifle';
 
         this.drawDelay = 3;
         this.capacity = 1;
         this.ammoType = 'bullets'
+        if (loaded) {
+            this.currentAmmo = this.capacity;
+        }
 
         this.minDamage = 2;
         this.maxDamageBase = 5;
@@ -201,13 +210,16 @@ export class Rifle extends RangedWeapon {
 }
 
 export class Shotgun extends RangedWeapon {
-    constructor() {
+    constructor(loaded) {
         super();
         this.name = 'shotgun';
 
         this.drawDelay = 3;
         this.capacity = 2;
         this.ammoType = 'buckshot'
+        if (loaded) {
+            this.currentAmmo = this.capacity;
+        }
 
         this.minDamage = 1;
         this.maxDamageBase = 5;
