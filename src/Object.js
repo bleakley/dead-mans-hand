@@ -24,5 +24,6 @@ export class ShopItem extends Object {
         super(item.name, item.symbol, 'white')
         this.item = item;
         this.interactions = [new ItemPurchase(this, owner, item, price), new ItemSteal(this, owner, item)];
+        console.log(this.interactions)
     }
 }

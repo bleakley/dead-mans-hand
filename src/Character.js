@@ -228,6 +228,23 @@ export class Character {
         return Math.max(Math.abs(this.x - other.x), Math.abs(this.y - other.y));
     }
 
+    getAdjacentObjects() {
+        let objects = [];
+        objects = objects.concat(this.game.getObjects(this.x + 1, this.y))
+        objects = objects.concat(this.game.getObjects(this.x - 1, this.y))
+        objects = objects.concat(this.game.getObjects(this.x, this.y + 1))
+        objects = objects.concat(this.game.getObjects(this.x, this.y - 1))
+        return objects;
+    }
+
+    getAllowedObjectInteractions() {
+        let interactions = [];
+        for (let object of this.getAdjacentObjects()) {
+            interactions = interactions.concat(object.interactions);
+        }
+        return interactions;
+    }
+
 }
 
 export class PlayerCharacter extends Character {

@@ -342,6 +342,17 @@ export class View {
             });
         }
 
+        let interactionCount = 0;
+        let interactionCommands = []
+        for (let interaction of player.getAllowedObjectInteractions()) {
+            interactionCount += 1;
+            interactionCommands.push({
+                key: interactionCount.toString(),
+                description: interaction.text
+            });
+        }
+        commands = commands.concat(interactionCommands.reverse());
+
         return commands;
     }
 

@@ -1,3 +1,5 @@
+import { formatMoney } from './Constants'
+
 export class ObjectInteraction {
     constructor(object, text) {
         this.object = object;
@@ -7,7 +9,7 @@ export class ObjectInteraction {
 
 export class ItemPurchase extends ObjectInteraction {
     constructor(object, owner, item, price) {
-        super(object, 'Purchase ' + item.name + ' ($' + price + ')');
+        super(object, 'Purchase ' + item.name + ' (' + formatMoney(price) + ')');
         this.price = price;
         this.owner = owner
     }

@@ -69,6 +69,9 @@ export class Game {
         if (this.getCharacters(x, y).length) {
             return false;
         }
+        if (this.getObjects(x, y).length) {
+            return false;
+        }
         return true;
     }
 
@@ -89,6 +92,8 @@ export class Game {
             this.player.startTurn();
             this.player.join(this.getPokerGame(newX, newY));
             return true;
+        } else if (this.getObjects(newX, newY).length) {
+            
         }
         return false;
     }
