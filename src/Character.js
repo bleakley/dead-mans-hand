@@ -167,7 +167,7 @@ export class Character {
             return false;
         }
 
-        return true;
+        return this.game.map.lineOfSightExistsBetween(this, target);
     }
 
     attack(target) {
@@ -392,11 +392,11 @@ export class NonPlayerCharacter extends Character {
             }
 
             // here we would walk towards the nearest threat, or to the nearest threat's LOS if we have a range weapon equipped
-        }
-
-        if (this.getCurrentWeapon() !== this.naturalWeapon) {
-            this.unequip();
-            return;
+        } else {
+            if (this.getCurrentWeapon() !== this.naturalWeapon) {
+                this.unequip();
+                return;
+            }
         }
 
         // At this point the NPC is not in combat, and is not worried about any immeadiate threats;

@@ -1,5 +1,6 @@
-import { TILE_GRASS_1, TILE_GRASS_2, TILE_WATER, sampleFromSeed, szudzikPair, TILE_GRASS_3 } from './Constants';
+import { TILES, TILE_GRASS_1, TILE_GRASS_2, TILE_WATER, sampleFromSeed, szudzikPair, TILE_GRASS_3 } from './Constants';
 import _ from 'lodash';
+import bresenhamGenerator from 'bresenham/generator';
 import { Town } from './Site';
 
 export class Map {
@@ -24,6 +25,28 @@ export class Map {
             return TILE_WATER;
         }
         return sampleFromSeed(positionSeed, [TILE_GRASS_1, TILE_GRASS_1, TILE_GRASS_2, TILE_GRASS_3]);
+    }
+
+    firstInterposingObstacleBetween(source, target) {
+        let line = bresenhamGenerator(source.x, source.y, target.x, target.y);
+        let point = line.next().value; // skip the first space, which is the space the shooter is standing in
+        while (point) {
+            point = line.next().value;
+            if (point) {
+                let tile = this.getTile(point.x, point.y);
+                if (TILES[tile].blocksVision) {
+                    if (point.x === target.x && point.y === target.y) {
+                        return null;
+                    }
+                    return point;
+                }
+            }
+        }
+        return null;
+    }
+
+    lineOfSightExistsBetween(source, target) {
+        return !this.firstInterposingObstacleBetween(source, target);
     }
 
 }

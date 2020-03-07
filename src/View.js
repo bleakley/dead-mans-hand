@@ -163,6 +163,20 @@ export class View {
         }
         let { x: displayX, y: displayY } = this.getDisplayCursorCoords();
         this.display.draw(displayX, displayY, 'X', 'red', 'black');
+
+        let targetSpaceOnMap = this.getMapCursorCoords();
+        let interposingSpace = this.game.map.firstInterposingObstacleBetween(this.game.player, targetSpaceOnMap);
+        if (interposingSpace) {
+            let interposingCoords = this.mapCoordsToDisplayCoords(interposingSpace);
+            
+            let playerCoords = this.mapCoordsToDisplayCoords(this.game.player);
+            let points = bresenham(playerCoords.x, playerCoords.y, interposingCoords.x, interposingCoords.y).slice(1);
+            points.forEach(point => {
+                this.display.draw(point.x, point.y, '\u2022', 'red', 'black');
+            });
+            
+            this.display.draw(interposingCoords.x, interposingCoords.y, 'X', 'red', 'black');
+        }
     }
 
     drawMap() {
