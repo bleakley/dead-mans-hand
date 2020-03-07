@@ -33,6 +33,12 @@ export class Game {
         this.projectiles.push({ ammoType, isHit, source, target });
     }
 
+    getProjectiles() {
+        let copy = [...this.projectiles];
+        this.projectiles = [];
+        return copy;
+    }
+
     getCharacters(x, y) {
         return this.characters.filter(c => c.x === x && c.y === y);
     }

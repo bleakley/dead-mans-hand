@@ -475,22 +475,21 @@ export class View {
 
     drawMuzzleFlash() {
         let somethingDrawn = false;
-        this.game.projectiles.forEach(projectile => {
-            if (projectile.ammoType === 'bullets' || projectile.ammoType === 'buckshot') {
-                let points = bresenham(projectile.source.x, projectile.source.y, projectile.target.x, projectile.target.y);
-                if (projectile.ammoType === 'bullets') {
-                    points = points.slice(1, 2);
-                } else if (projectile.ammoType === 'buckshot') {
-                    points = points.slice(1, 3);
-                }
-                points.forEach(point => {
-                    let { x: displayX, y: displayY } = this.mapCoordsToDisplayCoords(point);
-                    this.display.draw(displayX, displayY, '*', 'orange', 'white');
-                    somethingDrawn = true;
-                });
+        this.game.getProjectiles().forEach(projectile => {
+            let points = bresenham(projectile.source.x, projectile.source.y, projectile.target.x, projectile.target.y);
+            if (projectile.ammoType === 'bullets') {
+                points = points.slice(1, 2);
+            } else if (projectile.ammoType === 'buckshot') {
+                points = points.slice(1, 3);
+            } else {
+                points = [];
             }
+            points.forEach(point => {
+                let { x: displayX, y: displayY } = this.mapCoordsToDisplayCoords(point);
+                this.display.draw(displayX, displayY, '*', 'orange', 'white');
+                somethingDrawn = true;
+            });
         });
-        this.game.projectiles = [];
         return somethingDrawn;
     }
 
