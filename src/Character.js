@@ -3,6 +3,11 @@ import { Fist, Revolver, Knife, CanOfBeans, Shotgun, VaultKey, Rifle } from "./I
 import { Body, ShopItem, Cash } from "./Object";
 import { ItemSell, MoneyWithdrawl, MoneyDeposit } from "./CharacterInteraction";
 
+let characterCounter = 0;
+let nextCharacterId = () => characterCounter++;
+
+let opinionMap = [];
+
 export class Character {
     constructor(level, strength, quickness, cunning, guile, grit) {
         this.name = 'Stranger';
@@ -10,6 +15,8 @@ export class Character {
         this.color = 'white';
         this.isPC = false;
         this.isNPC = true;
+
+        this.id = nextCharacterId();
 
         this.cents = 0;
         this.bullets = 0;
@@ -44,6 +51,28 @@ export class Character {
     }
 
     onGameStart() {
+    }
+
+    getOpinionOf(other) {
+        if (!opinionMap.hasOwnProperty(this.id)) {
+            opinionMap[this.id] = [];
+            opinionMap[this.id][other.id] = 0;
+        } else if (!opinionMap[this.id].hasOwnProperty(other.id)) {
+            opinionMap[this.id][other.id] = 0;
+        }
+        return opinionMap[this.id][other.id];
+    }
+
+    setOpinionOf(other, opinion) {
+        if (!opinionMap.hasOwnProperty(this.id)) {
+            opinionMap[this.id] = [];
+        }
+        opinionMap[this.id][other.id] = opinion;
+        return opinionMap[this.id][other.id];
+    }
+
+    modifyOpinionOf(other, opinionChange) {
+        return this.setOpinionOf(other, this.getOpinionOf(other) + opinionChange);
     }
 
     getDisplayChar() {
@@ -149,7 +178,7 @@ export class Character {
     }
 
     isHostileTo(other) {
-        if (other.isPC && this.opinionOfPC <= -10) {
+        if (this.getOpinionOf(other) <= -10) {
             return true;
         }
         return false;
@@ -304,16 +333,14 @@ export class PlayerCharacter extends Character {
     }
 
     onAttack(target) {
-        if (this.isPC) {
-            if (!target.isHostileTo(this)) {
-                this.game.characters.forEach(c => {
-                    if (c.isNPC) {
-                        c.opinionOfPC -= 2 * c.desires.attackProvokers;
-                    }
-                });
-            }
-            target.opinionOfPC -= 20;
+        if (!target.isHostileTo(this)) {
+            this.game.characters.forEach(c => {
+                if (c.isNPC) {
+                    c.modifyOpinionOf(this, -2 * c.desires.attackProvokers);
+                }
+            });
         }
+        let opinion = target.modifyOpinionOf(this, -20);
     }
 
     onKill(target) {
@@ -324,8 +351,6 @@ export class PlayerCharacter extends Character {
 export class NonPlayerCharacter extends Character {
     constructor(level, strength, quickness, cunning, guile, grit) {
         super(level, strength, quickness, cunning, guile, grit);
-
-        this.opinionOfPC = 0;
 
         this.desires = {
             gamble: 0,
