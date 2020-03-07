@@ -163,6 +163,10 @@ export class View {
                     let character = cellContents.characters[0].getDisplayChar();
                     this.display.draw(displayX, displayY, character.symbol, character.color, tile.back);
                 }
+                else if (cellContents.objects.length) {
+                    let character = cellContents.objects[0].getDisplayChar();
+                    this.display.draw(displayX, displayY, character.symbol, character.color, tile.back);
+                }
             }
         }
 

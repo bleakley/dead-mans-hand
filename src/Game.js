@@ -7,6 +7,7 @@ export class Game {
     constructor() {
         this.turn = 0;
         this.characters = [];
+        this.objects = [];
         this.pokerGames = [];
         this.projectiles = [];
         this.map = new Map(this);
@@ -23,6 +24,14 @@ export class Game {
         return character;
     }
 
+    addObject(object, x, y) {
+        this.objects.push(object);
+        object.x = x;
+        object.y = y;
+        object.game = this;
+        return object;
+    }
+
     addPokerGame(x, y) {
         let pokerGame = new PokerGame(this, x, y);
         this.pokerGames.push(pokerGame);
@@ -37,6 +46,10 @@ export class Game {
         return this.characters.filter(c => c.x === x && c.y === y);
     }
 
+    getObjects(x, y) {
+        return this.objects.filter(c => c.x === x && c.y === y);
+    }
+
     getPokerGame(x, y) {
         return this.pokerGames.find(c => c.x === x && c.y === y);
     }
@@ -44,7 +57,8 @@ export class Game {
     getCellContents(x, y) {
         return {
             terrain: this.map.getTile(x, y),
-            characters: this.getCharacters(x, y)
+            characters: this.getCharacters(x, y),
+            objects: this.getObjects(x, y)
         }
     }
 

@@ -27,6 +27,7 @@ export class CanOfBeans extends Item {
         super();
         this.name = 'can of beans';
         this.description = 'Some tasty beans.';
+        this.symbol = 'B'
     }
 }
 
