@@ -14,6 +14,10 @@ export class Game {
 
         this.player = new PlayerCharacter();
         this.addCharacter(this.player, 0, 0);
+
+        this.characters.forEach(c => {
+            c.onGameStart();
+        });
     }
 
     addCharacter(character, x, y) {
