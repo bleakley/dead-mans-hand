@@ -138,7 +138,7 @@ export class Town extends Site {
         this.tiles[left + width/2][top + height] = TILE_WOOD_DOOR;
 
 
-        let shopKeep = this.map.game.addCharacter(new ShopKeep(), this.left + left + width/2, this.top + top + height/2);
+        let shopKeep = this.map.game.addCharacter(new ShopKeep(this.top + top, this.left + left, width, height), this.left + left + width/2, this.top + top + 1);
         this.map.game.addObject(new ShopItem(new CanOfBeans(), 50, shopKeep), this.left + left + 1, this.top + top + 1);
 
     }
