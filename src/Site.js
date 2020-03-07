@@ -31,7 +31,7 @@ export class Site {
 export class Town extends Site {
     constructor(top, left, width, height, seed, map) {
         super(top, left, width, height, seed, map);
-        console.log('helo')
+        
         let parcels = [];
         let parcelWidth = 16;
         let padding = 4;
@@ -122,9 +122,6 @@ export class Town extends Site {
         
         this.createRoom(top, left, width, height);
 
-        //this.tiles[left + width/2][top + height] = TILE_WOOD_DOOR;
-        //this.tiles[left + width/2][top + 1] = TILE_CROSS;
-
         if (orientation === 'N') {
             this.tiles[left + width/2][top + height] = TILE_WOOD_DOOR;
             this.tiles[left + width/2][top + 1] = TILE_CROSS;
@@ -139,7 +136,7 @@ export class Town extends Site {
         } else {
             this.tiles[left + width/2][top] = TILE_WOOD_DOOR;
             this.tiles[left + width/2][top + height - 1] = TILE_CROSS;
-            // Create pews (change)
+            // Create pews
             for (let x = left + 1; x < left + width; x++) {
                 for (let y = top + 1; y < top + height - 2; y += 2) {
                     if (x != left + width/2) {
