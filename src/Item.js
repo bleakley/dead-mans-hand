@@ -6,6 +6,7 @@ export class Item {
         this.isWeapon = false;
         this.name = 'item';
         this.description = 'No description.';
+        this.value = 0;
     }
 }
 
@@ -27,7 +28,8 @@ export class CanOfBeans extends Item {
         super();
         this.name = 'can of beans';
         this.description = 'Some tasty beans.';
-        this.symbol = 'B'
+        this.symbol = 'B';
+        this.value =  50;
     }
 }
 

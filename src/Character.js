@@ -1,6 +1,7 @@
 import { MALE_NAMES, LAST_NAMES, RANGE_POINT_BLANK, RANGE_CLOSE, RANGE_MEDIUM, RANGE_LONG, RANGES } from "./Constants";
 import { Fist, Revolver, Knife, CanOfBeans, Shotgun, Bow } from "./Item";
-import { Body } from "./Object";
+import { Body, ShopItem } from "./Object";
+import { ItemSell } from "./CharacterInteraction";
 
 export class Character {
     constructor(level, strength, quickness, cunning, guile, grit) {
@@ -239,14 +240,29 @@ export class Character {
         return objects;
     }
 
+    getAdjacentCharacters() {
+        let characters = [];
+        characters = characters.concat(this.game.getCharacters(this.x + 1, this.y))
+        characters = characters.concat(this.game.getCharacters(this.x - 1, this.y))
+        characters = characters.concat(this.game.getCharacters(this.x, this.y + 1))
+        characters = characters.concat(this.game.getCharacters(this.x, this.y - 1))
+        return characters;
+    }
+
     getAllowedInteractions() {
         let interactions = [];
         for (let object of this.getAdjacentObjects()) {
             interactions = interactions.concat(object.getInteractions());
         }
+        for (let character of this.getAdjacentCharacters()) {
+            interactions = interactions.concat(character.getInteractions(this));
+        }
         return interactions;
     }
 
+    getInteractions(character) {
+        return [];
+    }
 }
 
 export class PlayerCharacter extends Character {
@@ -321,5 +337,19 @@ export class ShopKeep extends Character {
 
         this.cents = 8000;
 
+    }
+
+    getInteractions (character) {
+        let interactions = [];
+        for (let item of character.inventory) {
+            if (item.value > 0) {
+                interactions.push(new ItemSell(this, character, item, item.value));    
+            }
+        }
+        return interactions;
+    }
+
+    addItem(item) {
+        this.game.addObject(new ShopItem(item, item.value, this), this.x + 1, this.y + 1);
     }
 }
