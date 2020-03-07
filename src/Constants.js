@@ -1,6 +1,6 @@
 export const GAME_WINDOW_WIDTH = 55;
 export const GAME_WINDOW_HEIGHT = 45;
-export const SIDEBAR_WIDTH = 28; // this is the min width needed to show 'Common: ' and then four tens with suits
+export const SIDEBAR_WIDTH = 30;
 
 export function fromSeed(seed, max = 1, min = 0) {
 

@@ -7,7 +7,7 @@ export class Interaction {
 
 export class ItemPurchase extends Interaction {
     constructor(object, owner, item, price) {
-        super(object, 'Purchase ' + item.name + ' ($' + price + ')');
+        super(object, 'Buy ' + item.name + ' ($' + price + ')');
         this.price = price;
         this.owner = owner
     }

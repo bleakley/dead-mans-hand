@@ -9,7 +9,7 @@ export class ObjectInteraction {
 
 export class ItemPurchase extends ObjectInteraction {
     constructor(object, owner, item, price) {
-        super(object, 'Purchase ' + item.name + ' (' + formatMoney(price) + ')');
+        super(object, 'Buy ' + item.name + ' (' + formatMoney(price) + ')');
         this.price = price;
         this.owner = owner
         this.item = item
