@@ -38,7 +38,6 @@ export class Character {
         this.luck = 0;
 
         this.threat = 0;
-        this.opinionOfPC = 0;
 
         this.utterance = '';
         this.activePokerPlayerRole = null;
@@ -82,34 +81,6 @@ export class Character {
         this.utterance = '';
     }
 
-    takeTurn() {
-        this.startTurn();
-
-        /*
-        Desires
-        gambling
-        travel
-        */
-
-        if (this.canReload() && !this.getCurrentWeapon().currentAmmo) {
-            this.reload();
-        }
-
-        let pokerPlayerRole = this.activePokerPlayerRole;
-        if (pokerPlayerRole && pokerPlayerRole.isActivePlayer() && pokerPlayerRole.game.waitingForActivePlayerAction) {
-            pokerPlayerRole.play();
-            pokerPlayerRole.game.activePlayer = pokerPlayerRole.game.getNextPlayer(pokerPlayerRole, true);
-            return;
-        }
-
-        if (pokerPlayerRole && pokerPlayerRole.isDealer() && pokerPlayerRole.game.waitingForDealerAction) {
-            pokerPlayerRole.deal();
-            return;
-        }
-
-        this.wait();
-    }
-
     join(pokerGame) {
         if (this.isNPC) {
             this.say(`I'm joining this game.`);
@@ -141,6 +112,7 @@ export class Character {
         }
         this.equippedWeapon = weapon;
         this.initiative -= weapon.drawDelay;
+        this.game.log(`${this.name} draws his ${weapon.name}.`);
     }
 
     unequip() {
@@ -148,13 +120,16 @@ export class Character {
             this[this.equippedWeapon.ammoType] += this.equippedWeapon.currentAmmo;
             this.equippedWeapon.currentAmmo = 0;
         }
+        this.game.log(`${this.name} stows his ${this.equippedWeapon.name}.`);
         this.equippedWeapon = null;
+
     }
 
     reload() {
         let weapon = this.getCurrentWeapon();
         weapon.currentAmmo++;
         this[weapon.ammoType]--;
+        this.game.log(`${this.name} reloads his ${weapon.name}.`);
     }
 
     getCurrentWeapon() {
@@ -171,6 +146,13 @@ export class Character {
         let max = weapon.maxDamageAttributes.reduce((prev, curr) => prev + this[curr], weapon.maxDamageBase);
         max = Math.max(min, max);
         return { min, max };
+    }
+
+    isHostileTo(other) {
+        if (other.isPC && this.opinionOfPC <= -10) {
+            return true;
+        }
+        return false;
     }
 
     canAttack(target) {
@@ -242,6 +224,10 @@ export class Character {
         }
         _.remove(this.game.characters, this);
         this.game.addObject(new Body(this), this.x, this.y);
+
+        if (this.isPC) {
+            this.game.gameOver = true;
+        }
     }
 
     distanceBetween(other) {
@@ -319,6 +305,9 @@ export class PlayerCharacter extends Character {
     }
 
     onAttack(target) {
+        if (this.isPC) {
+            target.opinionOfPC -= 20;
+        }
     }
 
     onKill(target) {
@@ -330,31 +319,101 @@ export class NonPlayerCharacter extends Character {
     constructor(level, strength, quickness, cunning, guile, grit) {
         super(level, strength, quickness, cunning, guile, grit);
 
+        this.opinionOfPC = 0;
+
         this.desires = {
             gamble: 0,
             travel: 0
         };
         this.winningStreak = 0;
         this.losingStreak = 0;
+
     }
-}
 
+    getThreats() {
+        return this.game.characters.filter(c => this.isHostileTo(c));
+    }
 
-export class Scoundrel extends NonPlayerCharacter {
-    constructor() {
-        super(
-            _.sample([0, 0, 1, 2]), // Level
-            _.sample([0, 1, 1, 2]), // Strength
-            _.sample([0, 1, 2, 2]), // Quickness
-            _.sample([0, 0, 0, 1]), // Cunning
-            _.sample([0, 1, 2, 3]), // Guile
-            _.sample([0, 0, 1, 2]), // Grit
-        );
-        this.name = `${_.sample(MALE_NAMES)} ${_.sample(LAST_NAMES)}`;
-        this.symbol = '@';
+    getPossibleTargets() {
+        return this.getThreats().filter(c => this.canAttack(c));
+    }
 
-        this.cents = 2000;
+    getBestWeapon(target) {
 
+        let useableWeapons = this.inventory.filter(i => i.isWeapon && (!i.capacity || i.currentAmmo > 0 || this[i.ammoType] > 0)).concat([this.naturalWeapon]);
+
+        if (useableWeapons.every(w => w.isMelee)) {
+            return useableWeapons.sort((a, b) => this.getDamageWithWeapon(b).max - this.getDamageWithWeapon(a).max)[0];
+        }
+
+        let distance = this.distanceBetween(target);
+        let range = [RANGE_POINT_BLANK, RANGE_CLOSE, RANGE_MEDIUM, RANGE_LONG].find(r => distance >= RANGES[r].min && distance <= RANGES[r].max);
+
+        if (range === RANGE_POINT_BLANK) {
+            return useableWeapons.filter(w => w.isMelee).sort((a, b) => this.getDamageWithWeapon(b).max - this.getDamageWithWeapon(a).max)[0];
+        }
+
+        return useableWeapons.filter(w => !w.isMelee).sort((a, b) => b.rangeModifiers[range] - a.rangeModifiers[range])[0];
+    }
+
+    takeTurn() {
+        this.startTurn();
+
+        // First the NPC takes care of combat and personal safety;
+
+        if (this.canReload() && !this.getCurrentWeapon().currentAmmo) {
+            this.reload();
+            return;
+        }
+
+        let targets = this.getPossibleTargets().sort((a, b) => a.health - b.health);
+
+        if (targets.length) {
+            this.attack(targets[0]);
+            return;
+        }
+
+        if (this.canReload()) {
+            this.reload();
+            return;
+        }
+
+        let threats = this.getThreats().sort((a, b) => a.distanceBetween(b));
+        if (threats.length) {
+            let bestWeapon = this.getBestWeapon(threats[0]);
+            if (bestWeapon !== this.getCurrentWeapon()) {
+                if (bestWeapon === this.naturalWeapon) {
+                    this.unequip();
+                    return;
+                } else {
+                    this.equip(bestWeapon);
+                    return;
+                }
+            }
+
+            // here we would walk towards the nearest threat, or to the nearest threat's LOS if we have a range weapon equipped
+        }
+
+        if (this.getCurrentWeapon() !== this.naturalWeapon) {
+            this.unequip();
+            return;
+        }
+
+        // At this point the NPC is not in combat, and is not worried about any immeadiate threats;
+
+        let pokerPlayerRole = this.activePokerPlayerRole;
+        if (pokerPlayerRole && pokerPlayerRole.isActivePlayer() && pokerPlayerRole.game.waitingForActivePlayerAction) {
+            pokerPlayerRole.play();
+            pokerPlayerRole.game.activePlayer = pokerPlayerRole.game.getNextPlayer(pokerPlayerRole, true);
+            return;
+        }
+
+        if (pokerPlayerRole && pokerPlayerRole.isDealer() && pokerPlayerRole.game.waitingForDealerAction) {
+            pokerPlayerRole.deal();
+            return;
+        }
+
+        this.wait();
     }
 
     onWinHand() {
@@ -377,6 +436,26 @@ export class Scoundrel extends NonPlayerCharacter {
 
     onKill(target) {
     }
+}
+
+
+export class Scoundrel extends NonPlayerCharacter {
+    constructor() {
+        super(
+            _.sample([0, 0, 1, 2]), // Level
+            _.sample([0, 1, 1, 2]), // Strength
+            _.sample([0, 1, 2, 2]), // Quickness
+            _.sample([0, 0, 0, 1]), // Cunning
+            _.sample([0, 1, 2, 3]), // Guile
+            _.sample([0, 0, 1, 2]), // Grit
+        );
+        this.name = `${_.sample(MALE_NAMES)} ${_.sample(LAST_NAMES)}`;
+        this.symbol = '@';
+
+        this.cents = 2000;
+
+    }
+
 }
 
 export class Priest extends NonPlayerCharacter {
@@ -410,6 +489,7 @@ export class ShopKeep extends NonPlayerCharacter {
         this.name = `${_.sample(MALE_NAMES)} ${_.sample(LAST_NAMES)}`;
         this.symbol = '@';
         this.inventory.push(new Revolver(true));
+        this.bullets = 30;
         this.shopTop = top;
         this.shopLeft = left;
         this.shopWidth = width;
@@ -456,7 +536,7 @@ export class ShopKeep extends NonPlayerCharacter {
     }
 }
 
-export class Banker extends Character {
+export class Banker extends NonPlayerCharacter {
     constructor(top, left, width, height) {
         super(
             _.sample([0, 0, 1, 2]), // Level
@@ -468,7 +548,8 @@ export class Banker extends Character {
         );
         this.name = `${_.sample(MALE_NAMES)} ${_.sample(LAST_NAMES)}`;
         this.symbol = '@';
-        this.inventory.push(new Revolver());
+        this.inventory.push(new Revolver(true));
+        this.bullets = 12;
         this.shopTop = top;
         this.shopLeft = left;
         this.shopWidth = width;

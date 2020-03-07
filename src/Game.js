@@ -6,6 +6,7 @@ import { PokerGame } from './PokerGame';
 export class Game {
     constructor() {
         this.turn = 0;
+        this.gameOver = false;
         this.characters = [];
         this.objects = [];
         this.pokerGames = [];

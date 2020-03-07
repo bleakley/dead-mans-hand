@@ -228,6 +228,11 @@ export class View {
     }
 
     getKeyboardCommands() {
+
+        if (this.game.gameOver) {
+            return [];
+        }
+
         let player = this.game.player;
         let commands = [];
         commands.push({
