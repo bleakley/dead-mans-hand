@@ -37,3 +37,27 @@ export class ItemSteal extends ObjectInteraction {
         this.object.delete()
     }
 }
+
+
+export class ItemLoot extends ObjectInteraction {
+    constructor(object, item) {
+        super(object, 'Loot ' + item.name);
+        this.item = item;
+    }
+
+    onInteract(character) {
+        character.inventory.push(this.item);
+        _.remove(this.object.character.inventory, this.item);
+    }
+}
+
+export class MoneyLoot extends ObjectInteraction {
+    constructor(object) {
+        super(object, 'Loot ' + formatMoney(object.character.cents));
+    }
+
+    onInteract(character) {
+        character.cents += this.object.character.cents;
+        this.object.character.cents = 0;
+    }
+}

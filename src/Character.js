@@ -1,5 +1,6 @@
 import { MALE_NAMES, LAST_NAMES, RANGE_POINT_BLANK, RANGE_CLOSE, RANGE_MEDIUM, RANGE_LONG, RANGES } from "./Constants";
 import { Fist, Revolver, Knife, CanOfBeans, Shotgun, Bow } from "./Item";
+import { Body } from "./Object";
 
 export class Character {
     constructor(level, strength, quickness, cunning, guile, grit) {
@@ -222,6 +223,7 @@ export class Character {
         }
         _.remove(this.game.characters, this);
         console.log(`${this.name} has died. RIP`);
+        this.game.addObject(new Body(this), this.x, this.y);
     }
 
     distanceBetween(other) {
@@ -240,7 +242,7 @@ export class Character {
     getAllowedInteractions() {
         let interactions = [];
         for (let object of this.getAdjacentObjects()) {
-            interactions = interactions.concat(object.interactions);
+            interactions = interactions.concat(object.getInteractions());
         }
         return interactions;
     }
@@ -315,6 +317,7 @@ export class ShopKeep extends Character {
         );
         this.name = `${_.sample(MALE_NAMES)} ${_.sample(LAST_NAMES)}`;
         this.symbol = '@';
+        this.inventory.push(new Revolver());
 
         this.cents = 8000;
 
