@@ -111,6 +111,7 @@ export const TILE_WOOD_DOOR = next();
 export const TILE_POKER_TABLE = next();
 export const TILE_BENCH = next();
 export const TILE_CROSS = next();
+export const TILE_VAULT_DOOR = next();
 
 export const TILES = {};
 TILES[TILE_DIRT_1] = {
@@ -198,15 +199,23 @@ TILES[TILE_BENCH] = {
     symbols: ['–'],
     fore: 'white',
     back: 'darkgoldenrod',
-    blocksMove: false,
-    blocksVision: true
+    blocksMove: true,
+    blocksVision: false
 };
 TILES[TILE_CROSS] = {
     name: 'cross',
     symbols: ['†'],
     fore: 'white',
     back: 'darkgoldenrod',
-    blocksMove: false,
+    blocksMove: true,
+    blocksVision: false
+};
+TILES[TILE_VAULT_DOOR] = {
+    name: 'vault door',
+    symbols: ['#'],
+    fore: 'white',
+    back: 'dimgray',
+    blocksMove: true,
     blocksVision: true
 };
 
