@@ -6,6 +6,8 @@ export class Item {
         this.isWeapon = false;
         this.name = 'item';
         this.description = 'No description.';
+        this.value = 0;
+        this.symbol = 'o';
     }
 }
 
@@ -27,6 +29,8 @@ export class CanOfBeans extends Item {
         super();
         this.name = 'can of beans';
         this.description = 'Some tasty beans.';
+        this.symbol = 'B';
+        this.value =  50;
     }
 }
 
@@ -84,6 +88,7 @@ export class Knife extends MeleeWeapon {
         this.minDamage = 1;
         this.maxDamageBase = 4;
         this.maxDamageAttributes = ['strength'];
+        this.value =  200;
     }
 }
 
@@ -96,6 +101,7 @@ export class Shovel extends MeleeWeapon {
         this.minDamage = 2;
         this.maxDamageBase = 3;
         this.maxDamageAttributes = ['strength'];
+        this.value =  200;
     }
 }
 
@@ -108,6 +114,7 @@ export class Axe extends MeleeWeapon {
         this.minDamage = 3;
         this.maxDamageBase = 4;
         this.maxDamageAttributes = ['strength'];
+        this.value =  200;
     }
 }
 
@@ -129,6 +136,7 @@ export class Bow extends RangedWeapon {
         this.rangeModifiers[RANGE_CLOSE] = 0;
         this.rangeModifiers[RANGE_MEDIUM] = 0;
         this.rangeModifiers[RANGE_LONG] = 0;
+        this.value =  200;
     }
 }
 
@@ -148,6 +156,7 @@ export class Pistol extends RangedWeapon {
         this.rangeModifiers[RANGE_CLOSE] = 2;
         this.rangeModifiers[RANGE_MEDIUM] = 0;
         this.rangeModifiers[RANGE_LONG] = -2;
+        this.value =  600;
     }
 }
 
@@ -167,6 +176,7 @@ export class Revolver extends RangedWeapon {
         this.rangeModifiers[RANGE_CLOSE] = 2;
         this.rangeModifiers[RANGE_MEDIUM] = 0;
         this.rangeModifiers[RANGE_LONG] = -2;
+        this.value =  1200;
     }
 }
 
@@ -186,6 +196,7 @@ export class Rifle extends RangedWeapon {
         this.rangeModifiers[RANGE_CLOSE] = 0;
         this.rangeModifiers[RANGE_MEDIUM] = 2;
         this.rangeModifiers[RANGE_LONG] = 2;
+        this.value =  2000;
     }
 }
 
@@ -205,5 +216,6 @@ export class Shotgun extends RangedWeapon {
         this.rangeModifiers[RANGE_CLOSE] = 5;
         this.rangeModifiers[RANGE_MEDIUM] = 0;
         this.rangeModifiers[RANGE_LONG] = -5;
+        this.value =  2000;
     }
 }

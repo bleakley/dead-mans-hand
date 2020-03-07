@@ -163,6 +163,10 @@ export class View {
                     let character = cellContents.characters[0].getDisplayChar();
                     this.display.draw(displayX, displayY, character.symbol, character.color, tile.back);
                 }
+                else if (cellContents.objects.length) {
+                    let character = cellContents.objects[0].getDisplayChar();
+                    this.display.draw(displayX, displayY, character.symbol, character.color, tile.back);
+                }
             }
         }
 
@@ -337,6 +341,17 @@ export class View {
                 description: `attack with ${player.getCurrentWeapon().name}`
             });
         }
+
+        let interactionCount = 0;
+        let interactionCommands = []
+        for (let interaction of player.getAllowedInteractions()) {
+            interactionCount += 1;
+            interactionCommands.push({
+                key: interactionCount.toString(),
+                description: interaction.text
+            });
+        }
+        commands = commands.concat(interactionCommands.reverse());
 
         return commands;
     }

@@ -1,5 +1,7 @@
 import { MALE_NAMES, LAST_NAMES, RANGE_POINT_BLANK, RANGE_CLOSE, RANGE_MEDIUM, RANGE_LONG, RANGES } from "./Constants";
 import { Fist, Revolver, Knife, CanOfBeans, Shotgun, Bow } from "./Item";
+import { Body, ShopItem } from "./Object";
+import { ItemSell } from "./CharacterInteraction";
 
 export class Character {
     constructor(level, strength, quickness, cunning, guile, grit) {
@@ -222,12 +224,45 @@ export class Character {
         }
         _.remove(this.game.characters, this);
         console.log(`${this.name} has died. RIP`);
+        this.game.addObject(new Body(this), this.x, this.y);
     }
 
     distanceBetween(other) {
         return Math.max(Math.abs(this.x - other.x), Math.abs(this.y - other.y));
     }
 
+    getAdjacentObjects() {
+        let objects = [];
+        objects = objects.concat(this.game.getObjects(this.x + 1, this.y))
+        objects = objects.concat(this.game.getObjects(this.x - 1, this.y))
+        objects = objects.concat(this.game.getObjects(this.x, this.y + 1))
+        objects = objects.concat(this.game.getObjects(this.x, this.y - 1))
+        return objects;
+    }
+
+    getAdjacentCharacters() {
+        let characters = [];
+        characters = characters.concat(this.game.getCharacters(this.x + 1, this.y))
+        characters = characters.concat(this.game.getCharacters(this.x - 1, this.y))
+        characters = characters.concat(this.game.getCharacters(this.x, this.y + 1))
+        characters = characters.concat(this.game.getCharacters(this.x, this.y - 1))
+        return characters;
+    }
+
+    getAllowedInteractions() {
+        let interactions = [];
+        for (let object of this.getAdjacentObjects()) {
+            interactions = interactions.concat(object.getInteractions());
+        }
+        for (let character of this.getAdjacentCharacters()) {
+            interactions = interactions.concat(character.getInteractions(this));
+        }
+        return interactions;
+    }
+
+    getInteractions(character) {
+        return [];
+    }
 }
 
 export class PlayerCharacter extends Character {
@@ -287,7 +322,7 @@ export class Priest extends Character {
 }
 
 export class ShopKeep extends Character {
-    constructor() {
+    constructor(top, left, width, height) {
         super(
             _.sample([0, 0, 1, 2]), // Level
             _.sample([0, 1, 1, 2]), // Strength
@@ -298,8 +333,49 @@ export class ShopKeep extends Character {
         );
         this.name = `${_.sample(MALE_NAMES)} ${_.sample(LAST_NAMES)}`;
         this.symbol = '@';
-
+        this.inventory.push(new Revolver());
+        this.shopTop = top;
+        this.shopLeft = left;
+        this.shopWidth = width;
+        this.shopHeight = height;
         this.cents = 8000;
 
+    }
+
+    getInteractions (character) {
+        let interactions = [];
+        if (this.getEmptyShopSpace()) {
+            for (let item of character.inventory) {
+                if (item.value > 0) {
+                    interactions.push(new ItemSell(this, character, item, item.value));    
+                }
+            }
+        }
+        return interactions;
+    }
+
+    addItem(item) {
+        let space = this.getEmptyShopSpace();
+        this.game.addObject(new ShopItem(item, item.value, this), space[0], space[1]);
+    }
+
+    getEmptyShopSpace() {
+        let spaces = [];
+        for (let x = this.shopLeft + 1; x < this.shopLeft + this.shopWidth; x++) {
+            for (let y = this.shopTop + 3; y < this.shopTop + this.shopHeight; y += 2) {
+                if (x != this.shopLeft + this.shopWidth/2) {
+                    if (this.game.spaceIsPassable(x, y)) {
+                        spaces.push([x, y]);
+                    }
+                }
+            }
+        }        
+
+        if (spaces.length > 0) {
+            return _.sample(spaces);
+        }
+        else {
+            return null;
+        }
     }
 }

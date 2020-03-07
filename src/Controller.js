@@ -155,8 +155,53 @@ export class Controller {
                     playerTookAction = true;
                 }
                 break;
-
+            case 49: // 1
+                if (player.getAllowedInteractions().length >= 1) {
+                    player.getAllowedInteractions()[0].onInteract(player);                    
+                }
+                break;
+            case 50: // 2
+                if (player.getAllowedInteractions().length >= 2) {
+                    player.getAllowedInteractions()[1].onInteract(player);                    
+                }
+                break;
+            case 51: // 3
+                if (player.getAllowedInteractions().length >= 3) {
+                    player.getAllowedInteractions()[2].onInteract(player);                    
+                }
+                break;
+            case 52: // 4
+                if (player.getAllowedInteractions().length >= 4) {
+                    player.getAllowedInteractions()[3].onInteract(player);                    
+                }
+                break;
+            case 53: // 5
+                if (player.getAllowedInteractions().length >= 5) {
+                    player.getAllowedInteractions()[4].onInteract(player);                    
+                }
+                break;
+            case 54: // 6
+                if (player.getAllowedInteractions().length >= 6) {
+                    player.getAllowedInteractions()[5].onInteract(player);                    
+                }
+                break;
+            case 55: // 7
+                if (player.getAllowedInteractions().length >= 7) {
+                    player.getAllowedInteractions()[6].onInteract(player);                    
+                }
+                break;
+            case 56: // 8
+                if (player.getAllowedInteractions().length >= 8) {
+                    player.getAllowedInteractions()[7].onInteract(player);                    
+                }
+                break; 
+            case 57: // 9
+                if (player.getAllowedInteractions().length >= 9) {
+                    player.getAllowedInteractions()[9].onInteract(player);                    
+                }
+                break;                     
         }
+
         if (playerTookAction) {
             this.game.playTurn();
         }
