@@ -158,7 +158,6 @@ export class View {
     }
 
     drawMap() {
-
         for (let x = -halfWidth; x < halfWidth + widthOdd ? 1 : 0; x++) {
             for (let y = -halfHeight; y < halfHeight + heightOdd ? 1 : 0; y++) {
                 let displayX = x + halfWidth;
@@ -179,7 +178,6 @@ export class View {
                 }
             }
         }
-
         if (this.showInventory) {
             this.clearSidebar();
             this.drawInventory();
@@ -213,8 +211,10 @@ export class View {
         (characters.length ? characters : this.game.characters).forEach(character => {
             if (character.utterance) {
                 let speechCoords = this.mapCoordsToDisplayCoords({ x: character.x, y: character.y });
-                this.display.draw(speechCoords.x + 1, speechCoords.y - 1, '/', 'black', 'white');
-                this.display.drawText(speechCoords.x, speechCoords.y - 2, '%c{black}%b{white}' + character.utterance);
+                if (speechCoords.x < GAME_WINDOW_WIDTH) {
+                    this.display.draw(speechCoords.x + 1, speechCoords.y - 1, '/', 'black', 'white');
+                    this.display.drawText(speechCoords.x, speechCoords.y - 2, '%c{black}%b{white}' + character.utterance);
+                }
             }
         });
     }

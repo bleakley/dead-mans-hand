@@ -22,3 +22,23 @@ export class ItemSell extends CharacterInteraction {
         this.character.addItem(this.item);
     }
 }
+
+export class MoneyDeposit extends CharacterInteraction {
+    constructor(character, value) {
+        super(character, 'Deposit ' + formatMoney(value));
+        this.value = value;
+    }
+    onInteract(character) {
+        this.character.takeMoney(this.value, character);
+    }
+}
+
+export class MoneyWithdrawl extends CharacterInteraction {
+    constructor(character, value) {
+        super(character, 'Withdraw ' + formatMoney(value));
+        this.value = value;
+    }
+    onInteract(character) {
+        this.character.giveMoney(this.value, character);
+    }
+}

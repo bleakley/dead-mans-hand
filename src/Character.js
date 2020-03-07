@@ -1,7 +1,7 @@
 import { MALE_NAMES, LAST_NAMES, RANGE_POINT_BLANK, RANGE_CLOSE, RANGE_MEDIUM, RANGE_LONG, RANGES, XP_REQUIREMENTS } from "./Constants";
 import { Fist, Revolver, Knife, CanOfBeans, Shotgun, Bow } from "./Item";
-import { Body, ShopItem } from "./Object";
-import { ItemSell } from "./CharacterInteraction";
+import { Body, ShopItem, Cash } from "./Object";
+import { ItemSell, MoneyWithdrawl, MoneyDeposit } from "./CharacterInteraction";
 
 export class Character {
     constructor(level, strength, quickness, cunning, guile, grit) {
@@ -42,6 +42,9 @@ export class Character {
 
         this.utterance = '';
         this.activePokerPlayerRole = null;
+    }
+
+    onGameStart() {
     }
 
     getDisplayChar() {
@@ -450,5 +453,100 @@ export class ShopKeep extends NonPlayerCharacter {
         else {
             return null;
         }
+    }
+}
+
+export class Banker extends Character {
+    constructor(top, left, width, height) {
+        super(
+            _.sample([0, 0, 1, 2]), // Level
+            _.sample([0, 1, 1, 2]), // Strength
+            _.sample([0, 0, 1, 2]), // Quickness
+            _.sample([0, 0, 0, 1]), // Cunning
+            _.sample([0, 0, 0, 1]), // Guile
+            _.sample([0, 0, 0, 1]), // Grit
+        );
+        this.name = `${_.sample(MALE_NAMES)} ${_.sample(LAST_NAMES)}`;
+        this.symbol = '@';
+        this.inventory.push(new Revolver());
+        this.shopTop = top;
+        this.shopLeft = left;
+        this.shopWidth = width;
+        this.shopHeight = height;
+        this.cents = 8000;
+        this.cashList = [];
+        this.accounts = {};
+
+    }
+
+    getInteractions (character) {
+        let interactions = [];
+        if (this.accounts[character]) {
+            if (this.accounts[character] >= 1000) {
+                interactions.push(new MoneyWithdrawl(this, 1000));
+            }
+            else if (this.accounts[character] > 0) {
+                interactions.push(new MoneyWithdrawl(this, this.accounts[character]));
+            }
+        }
+        if (character.cents >= 1000) {
+            interactions.push(new MoneyDeposit(this, 1000));
+        }
+        return interactions;
+    }
+
+    getEmptyVaultSpace() {
+        let spaces = [];
+        for (let x = this.shopLeft + 1; x < this.shopLeft + this.shopWidth; x++) {
+            for (let y = this.shopTop + 3; y < this.shopTop + this.shopHeight; y += 2) {
+                if (x != this.shopLeft + this.shopWidth/2) {
+                    if (this.game.spaceIsPassable(x, y)) {
+                        spaces.push([x, y]);
+                    }
+                }
+            }
+        }        
+
+        if (spaces.length > 0) {
+            return _.sample(spaces);
+        }
+        else {
+            return null;
+        }
+    }
+
+    onGameStart() {
+        this.addMoneyToVault(2000);
+        this.addMoneyToVault(2000);
+    }
+
+    takeMoney(value, character) {
+        character.cents -= value;
+        if (!this.accounts[character]) {
+            this.accounts[character] = value;
+        }
+        else {
+            this.accounts[character] += value;
+        }
+        this.addMoneyToVault(value);
+    }
+
+    addMoneyToVault(value) {
+        let space = this.getEmptyVaultSpace()
+        let cash = this.game.addObject(new Cash(value), space[0], space[1]);
+        this.cashList.push(cash)
+    }
+
+    giveMoney(value, character) {
+        character.cents += value
+        this.accounts[character] -= value
+        while (value >= this.cashList[0].value) {
+            value -= this.cashList[0].value;
+            this.cashList[0].delete();
+            _.remove(this.cashList, this.cashList[0]);
+        }
+        this.cashList[0].value = this.cashList[0].value - value;
+
+
     }
 }

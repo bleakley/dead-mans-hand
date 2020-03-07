@@ -38,6 +38,16 @@ export class ItemSteal extends ObjectInteraction {
     }
 }
 
+export class CashTake extends ObjectInteraction {
+    constructor(object) {
+        super(object, 'Take ' + formatMoney(object.value));
+    }
+
+    onInteract(character) {
+        character.cents += this.object.value;
+        this.object.delete()
+    }
+}
 
 export class ItemLoot extends ObjectInteraction {
     constructor(object, item) {

@@ -1,4 +1,5 @@
-import { ItemPurchase, ItemSteal, ItemLoot, MoneyLoot } from "./ObjectInteraction";
+import { ItemPurchase, ItemSteal, ItemLoot, MoneyLoot, CashTake } from "./ObjectInteraction";
+import { formatMoney } from "./Constants";
 
 export class Object {
     constructor(name, symbol, color) {
@@ -49,3 +50,16 @@ export class Body extends Object {
         return interactions;
     }
 }
+
+export class Cash extends Object {
+    constructor(value) {
+        // To do: replace with formatMoney
+        super('Cash (' + value.toString() + ')', '$', 'green');
+        this.value = value;
+    }
+
+    getInteractions() {
+        return [new CashTake(this)];
+    }
+}
+

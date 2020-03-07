@@ -7,7 +7,7 @@ export class Map {
         this.seed = _.random(1000);
         this.game = game
         this.sites = [
-            new Town(-40, -40, 60, 60, this.seed, this)
+            new Town(-30, 0, 100, 60, this.seed, this)
         ];
 
     }
