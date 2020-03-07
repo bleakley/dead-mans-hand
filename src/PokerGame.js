@@ -136,6 +136,7 @@ export class PokerGame {
     }
 
     allPlayersHaveActed() {
+        console.log(this.players)
         if (this.round < 5) {
             return this.players.filter(p => p.inCurrentHand && !p.isAllIn()).every(p => p.hasTakenActionSinceLastRaise);
         }
@@ -161,11 +162,16 @@ export class PokerGame {
         bigBlindPlayer.bet(this.bigBlind);
         this.activePlayer = this.getNextPlayer(bigBlindPlayer, true);
         this.lastPlayerToBet = null;
+        this.resetHasTakenActionSinceLastRaise();
+    }
+
+    resetHasTakenActionSinceLastRaise() {
+        this.players.map(p => p.hasTakenActionSinceLastRaise = false);
     }
 
     flop() {
+        this.resetHasTakenActionSinceLastRaise();
         this.round = 2;
-        this.players.map(p => p.hasTakenActionSinceLastRaise = false);
         let cards = [this.deck.draw(), this.deck.draw(), this.deck.draw()];
         this.communityCards.push(...cards);
         this.activePlayer = this.getNextPlayer(this.dealer, true);
@@ -175,7 +181,7 @@ export class PokerGame {
 
     turn() {
         this.round = 3;
-        this.players.map(p => p.hasTakenActionSinceLastRaise = false);
+        this.resetHasTakenActionSinceLastRaise();
         let card = this.deck.draw();
         this.communityCards.push(card);
         this.activePlayer = this.getNextPlayer(this.dealer, true);
@@ -185,7 +191,7 @@ export class PokerGame {
 
     river() {
         this.round = 4;
-        this.players.map(p => p.hasTakenActionSinceLastRaise = false);
+        this.resetHasTakenActionSinceLastRaise();
         let card = this.deck.draw();
         this.communityCards.push(card);
         this.activePlayer = this.getNextPlayer(this.dealer, true);
@@ -341,6 +347,7 @@ class Player {
         this.currentBet += amount;
         this.game.lastPlayerToBet = this;
         this.character.say(`I bet ${formatMoney(amount)}.`);
+        this.game.resetHasTakenActionSinceLastRaise();
         this.hasTakenActionSinceLastRaise = true;
         this.game.waitingForActivePlayerAction = false;
     }
@@ -417,6 +424,7 @@ class Player {
         this.currentBet += this.getCallAmount() + amount;
         this.game.lastPlayerToBet = this;
         this.character.say(`I raise ${formatMoney(amount)}.`);
+        this.game.resetHasTakenActionSinceLastRaise();
         this.hasTakenActionSinceLastRaise = true;
         this.game.waitingForActivePlayerAction = false;
     }

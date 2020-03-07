@@ -362,6 +362,12 @@ export class View {
                         key: 'C',
                         description: `call`
                     });
+                }
+                if (pokerRole.canRaise()) {
+                    commands.push({
+                        key: 'R',
+                        description: `raise`
+                    });
                     if (canIncreaseRaise && canDecreaseRaise) {
                         commands.push({
                             key: '+/-',

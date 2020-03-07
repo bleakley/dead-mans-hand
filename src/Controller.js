@@ -130,13 +130,19 @@ export class Controller {
                     }
                     break;
                 case 189: // minus
-                    if (player.activePokerPlayerRole && player.activePokerPlayerRole.canCall()) {
+                    if (player.activePokerPlayerRole && player.activePokerPlayerRole.canBet()) {
                         this.view.tempBetValue -= 100;
+                    }
+                    else if (player.activePokerPlayerRole && player.activePokerPlayerRole.canRaise()) {
+                        this.view.tempRaiseValue -= 100;
                     }
                     break;
                 case 187: // plus
-                    if (player.activePokerPlayerRole && player.activePokerPlayerRole.canCall()) {
+                    if (player.activePokerPlayerRole && player.activePokerPlayerRole.canBet()) {
                         this.view.tempBetValue += 100;
+                    }
+                    else if (player.activePokerPlayerRole && player.activePokerPlayerRole.canRaise()) {
+                        this.view.tempRaiseValue += 100;
                     }
                     break;
                 case 69: // e
