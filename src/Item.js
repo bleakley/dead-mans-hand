@@ -34,6 +34,15 @@ export class CanOfBeans extends Item {
     }
 }
 
+export class VaultKey extends Item {
+    constructor() {
+        super();
+        this.name = 'bank vault key';
+        this.description = 'This unlocks the bank vault.';
+        this.symbol = '!';
+    }
+}
+
 export class MeleeWeapon extends Weapon {
     constructor() {
         super();

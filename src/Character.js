@@ -1,7 +1,12 @@
 import { MALE_NAMES, LAST_NAMES, RANGE_POINT_BLANK, RANGE_CLOSE, RANGE_MEDIUM, RANGE_LONG, RANGES, XP_REQUIREMENTS } from "./Constants";
-import { Fist, Revolver, Knife, CanOfBeans, Shotgun, Bow } from "./Item";
+import { Fist, Revolver, Knife, CanOfBeans, Shotgun, VaultKey, Rifle } from "./Item";
 import { Body, ShopItem, Cash } from "./Object";
 import { ItemSell, MoneyWithdrawl, MoneyDeposit } from "./CharacterInteraction";
+
+let characterCounter = 0;
+let nextCharacterId = () => characterCounter++;
+
+let opinionMap = [];
 
 export class Character {
     constructor(level, strength, quickness, cunning, guile, grit) {
@@ -10,6 +15,8 @@ export class Character {
         this.color = 'white';
         this.isPC = false;
         this.isNPC = true;
+
+        this.id = nextCharacterId();
 
         this.cents = 0;
         this.bullets = 0;
@@ -44,6 +51,28 @@ export class Character {
     }
 
     onGameStart() {
+    }
+
+    getOpinionOf(other) {
+        if (!opinionMap.hasOwnProperty(this.id)) {
+            opinionMap[this.id] = [];
+            opinionMap[this.id][other.id] = 0;
+        } else if (!opinionMap[this.id].hasOwnProperty(other.id)) {
+            opinionMap[this.id][other.id] = 0;
+        }
+        return opinionMap[this.id][other.id];
+    }
+
+    setOpinionOf(other, opinion) {
+        if (!opinionMap.hasOwnProperty(this.id)) {
+            opinionMap[this.id] = [];
+        }
+        opinionMap[this.id][other.id] = opinion;
+        return opinionMap[this.id][other.id];
+    }
+
+    modifyOpinionOf(other, opinionChange) {
+        return this.setOpinionOf(other, this.getOpinionOf(other) + opinionChange);
     }
 
     getDisplayChar() {
@@ -149,7 +178,7 @@ export class Character {
     }
 
     isHostileTo(other) {
-        if (other.isPC && this.opinionOfPC <= -10) {
+        if (this.getOpinionOf(other) <= -10) {
             return true;
         }
         return false;
@@ -283,7 +312,6 @@ export class PlayerCharacter extends Character {
         this.inventory.push(new Knife());
         this.inventory.push(new CanOfBeans());
         this.inventory.push(new Shotgun(true));
-        this.inventory.push(new Bow());
     }
 
     gainXp(xp) {
@@ -305,9 +333,14 @@ export class PlayerCharacter extends Character {
     }
 
     onAttack(target) {
-        if (this.isPC) {
-            target.opinionOfPC -= 20;
+        if (!target.isHostileTo(this)) {
+            this.game.characters.forEach(c => {
+                if (c.isNPC) {
+                    c.modifyOpinionOf(this, -2 * c.desires.attackProvokers);
+                }
+            });
         }
+        let opinion = target.modifyOpinionOf(this, -20);
     }
 
     onKill(target) {
@@ -319,11 +352,11 @@ export class NonPlayerCharacter extends Character {
     constructor(level, strength, quickness, cunning, guile, grit) {
         super(level, strength, quickness, cunning, guile, grit);
 
-        this.opinionOfPC = 0;
-
         this.desires = {
             gamble: 0,
-            travel: 0
+            travel: 0,
+            attackProvokers: 0,
+            defendBank: 0
         };
         this.winningStreak = 0;
         this.losingStreak = 0;
@@ -454,6 +487,8 @@ export class Scoundrel extends NonPlayerCharacter {
 
         this.cents = 2000;
 
+        this.desires.attackProvokers = 1;
+
     }
 
 }
@@ -536,19 +571,44 @@ export class ShopKeep extends NonPlayerCharacter {
     }
 }
 
+export class Marshal extends NonPlayerCharacter {
+    constructor() {
+        super(
+            _.sample([1, 2, 3, 4]), // Level
+            _.sample([0, 1, 2, 2]), // Strength
+            _.sample([0, 1, 1, 2]), // Quickness
+            _.sample([0, 0, 1, 1]), // Cunning
+            _.sample([0, 0, 1, 2]), // Guile
+            _.sample([1, 2, 3, 4]), // Grit
+        );
+        this.name = `${_.sample(MALE_NAMES)} ${_.sample(LAST_NAMES)}`;
+        this.symbol = '@';
+
+        this.cents = 4000;
+
+        this.desires.attackProvokers = 5;
+
+        this.inventory.push(new Rifle(true));
+        this.inventory.push(new Revolver(true));
+        this.bullets = 120;
+
+    }
+}
+
 export class Banker extends NonPlayerCharacter {
     constructor(top, left, width, height) {
         super(
             _.sample([0, 0, 1, 2]), // Level
             _.sample([0, 1, 1, 2]), // Strength
             _.sample([0, 0, 1, 2]), // Quickness
-            _.sample([0, 0, 0, 1]), // Cunning
+            _.sample([1, 2, 3, 4]), // Cunning
             _.sample([0, 0, 0, 1]), // Guile
             _.sample([0, 0, 0, 1]), // Grit
         );
         this.name = `${_.sample(MALE_NAMES)} ${_.sample(LAST_NAMES)}`;
         this.symbol = '@';
         this.inventory.push(new Revolver(true));
+        this.inventory.push(new VaultKey());
         this.bullets = 12;
         this.shopTop = top;
         this.shopLeft = left;
