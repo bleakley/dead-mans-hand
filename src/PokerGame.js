@@ -386,7 +386,7 @@ class Player {
     }
 
     canReveal() {
-        return this.inCurrentHand && !this.cardsRevealed;
+        return this.inCurrentHand && !this.cardsRevealed && this.game.round == 5;
     }
 
     canCheck() {
