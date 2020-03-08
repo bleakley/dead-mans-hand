@@ -60,10 +60,10 @@ export class PokerGame {
         player.character.activePokerPlayerRole = null;
     }
 
-    orderPlayers() {
+    getPlayersInOrder() {
         const clockwiseOrder = ['0,-1', '1,-1', '1,0', '1,1', '0,1', '-1,1', '-1,0', '-1,-1'];
 
-        this.players = this.players.sort((p1, p2) => {
+        return this.players.sort((p1, p2) => {
             let i1 = clockwiseOrder.findIndex(p => p === `${p1.character.x - this.x},${p1.character.y - this.y}`);
             let i2 = clockwiseOrder.findIndex(p => p === `${p2.character.x - this.x},${p2.character.y - this.y}`);
             if (i1 === -1 || i2 === -1) {
@@ -75,8 +75,7 @@ export class PokerGame {
 
     getNextPlayer(previousPlayer, inCurrentHand) {
 
-        this.orderPlayers();
-        let playersOrderedClockwise = inCurrentHand ? this.players.filter(p => p.inCurrentHand) : this.players;
+        let playersOrderedClockwise = inCurrentHand ? this.getPlayersInOrder().filter(p => p.inCurrentHand) : this.getPlayersInOrder();
 
         let position = playersOrderedClockwise.findIndex(p => p === previousPlayer);
         let nextPosition = position + 1;
@@ -100,7 +99,12 @@ export class PokerGame {
             return;
         }
 
-        if (this.allPlayersHaveActed()) {
+        if (this.players.filter(p => p.inCurrentHand).length == 1 && !this.players.filter(p => p.inCurrentHand)[0].cardsMucked && this.round > 0) {
+            this.dividePot();
+            this.players.filter(p => p.inCurrentHand)[0].muckCards();
+            this.waitingForActivePlayerAction = false;
+        }
+        else if (this.allPlayersHaveActed()) {
             if (this.round === 6) {
                 this.cleanUp();
                 this.dealer = this.getNextPlayer(this.dealer, false);
@@ -161,11 +165,16 @@ export class PokerGame {
         bigBlindPlayer.bet(this.bigBlind);
         this.activePlayer = this.getNextPlayer(bigBlindPlayer, true);
         this.lastPlayerToBet = null;
+        this.resetHasTakenActionSinceLastRaise();
+    }
+
+    resetHasTakenActionSinceLastRaise() {
+        this.players.map(p => p.hasTakenActionSinceLastRaise = false);
     }
 
     flop() {
+        this.resetHasTakenActionSinceLastRaise();
         this.round = 2;
-        this.players.map(p => p.hasTakenActionSinceLastRaise = false);
         let cards = [this.deck.draw(), this.deck.draw(), this.deck.draw()];
         this.communityCards.push(...cards);
         this.activePlayer = this.getNextPlayer(this.dealer, true);
@@ -175,7 +184,7 @@ export class PokerGame {
 
     turn() {
         this.round = 3;
-        this.players.map(p => p.hasTakenActionSinceLastRaise = false);
+        this.resetHasTakenActionSinceLastRaise();
         let card = this.deck.draw();
         this.communityCards.push(card);
         this.activePlayer = this.getNextPlayer(this.dealer, true);
@@ -185,7 +194,7 @@ export class PokerGame {
 
     river() {
         this.round = 4;
-        this.players.map(p => p.hasTakenActionSinceLastRaise = false);
+        this.resetHasTakenActionSinceLastRaise();
         let card = this.deck.draw();
         this.communityCards.push(card);
         this.activePlayer = this.getNextPlayer(this.dealer, true);
@@ -201,7 +210,7 @@ export class PokerGame {
 
     dividePot() {
         this.round = 6;
-        let winners = this.players.filter(p => compareHands(this.winningHand, p.bestHand()) === 0);
+        let winners = this.players.filter(p => p.inCurrentHand).filter(p => compareHands(this.winningHand, p.bestHand()) === 0);
         winners.map(p => p.character.say('I win!'));
 
         let undividedMoney = 0;
@@ -325,31 +334,37 @@ class Player {
     }
 
     getMinValidBet() {
-        return Math.min(this.game.getHighestBet(), Math.max(this.character.cents, 1));
+        return Math.min(this.game.bigBlind, this.character.cents);
+    }
+
+    getMaxValidRaise() {
+        let highestOtherStackInHand = this.game.players.filter(p => p.inCurrentHand && p !== this).reduce((prevMax, player) => Math.max(prevMax, player.character.cents), 0);
+        return Math.min(this.character.cents - this.getCallAmount(), highestOtherStackInHand);
+    }
+
+    getMinValidRaise() {
+        return Math.min(this.getCallAmount(), this.character.cents - this.getCallAmount());
     }
 
     bet(amount) {
-        let maxBet = Math.min(this.character.cents, amount);
-        if (maxBet > this.game.getHighestBet()) {
-            this.game.players.map(p => p.hasTakenActionSinceLastRaise = false);
-        }
-        this.currentBet = maxBet;
+        this.currentBet += amount;
         this.game.lastPlayerToBet = this;
-        this.game.waitingForActivePlayerAction = false;
-        this.character.say(`I bet ${formatMoney(this.currentBet)}.`);
+        this.character.say(`I bet ${formatMoney(amount)}.`);
+        this.game.resetHasTakenActionSinceLastRaise();
         this.hasTakenActionSinceLastRaise = true;
         this.game.waitingForActivePlayerAction = false;
     }
 
-    play() {
-        if (this.game.round === 5 && !this.cardsRevealed && !this.cardsMucked) {
-            return this.revealCards();
-        }
-        if (this.canCheck()) {
-            this.check();
-        } else {
-            this.call();
-        }
+    call() {
+        this.currentBet = this.game.getHighestBet();
+        this.game.lastPlayerToBet = this;
+        this.game.waitingForActivePlayerAction = false;
+        this.character.say(`I call.`);
+        this.hasTakenActionSinceLastRaise = true;
+    }
+
+    getCallAmount() {
+        return this.game.getHighestBet() - this.currentBet;
     }
 
     canReveal() {
@@ -360,8 +375,16 @@ class Player {
         return this.isActivePlayer() && this.inCurrentHand && this.game.round < 5 && (this.isAllIn() || this.isMatchingHighestBet());
     }
 
+    canBet() {
+        return this.canCheck();
+    }
+
+    canRaise() {
+        return this.canCall() && this.character.cents > this.getCallAmount();
+    }
+
     canFold() {
-        return this.isActivePlayer() && this.inCurrentHand;
+        return this.isActivePlayer() && this.inCurrentHand && this.game.round < 5 && this.currentBet < this.game.getHighestBet();
     }
 
     canCall() {
@@ -382,11 +405,20 @@ class Player {
     }
 
     call() {
-        this.bet(this.game.getHighestBet());
+        this.currentBet += this.getCallAmount();
+        this.game.lastPlayerToBet = this;
+        this.character.say(`I call.`);
+        this.hasTakenActionSinceLastRaise = true;
+        this.game.waitingForActivePlayerAction = false;
     }
 
-    raise() {
-
+    raise(amount) {
+        this.currentBet += this.getCallAmount() + amount;
+        this.game.lastPlayerToBet = this;
+        this.character.say(`I raise ${formatMoney(amount)}.`);
+        this.game.resetHasTakenActionSinceLastRaise();
+        this.hasTakenActionSinceLastRaise = true;
+        this.game.waitingForActivePlayerAction = false;
     }
 
     revealCards() {
