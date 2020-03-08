@@ -361,8 +361,8 @@ export class View {
                 let maxRaise = pokerRole.getMaxValidRaise();
                 this.tempBetValue = Math.max(minBet, this.tempBetValue);
                 this.tempBetValue = Math.min(maxBet, this.tempBetValue);
-                this.tempRaiseValue = Math.max(minBet, this.tempRaiseValue);
-                this.tempRaiseValue = Math.min(maxBet, this.tempRaiseValue);
+                this.tempRaiseValue = Math.max(minRaise, this.tempRaiseValue);
+                this.tempRaiseValue = Math.min(maxRaise, this.tempRaiseValue);
                 let canIncreaseBet = this.tempBetValue < maxBet;
                 let canDecreaseBet = this.tempBetValue > minBet;
                 let canIncreaseRaise = this.tempRaiseValue < maxRaise;
