@@ -229,6 +229,9 @@ export class View {
             }
         }
 
+        if (!this.game.player.activePokerPlayerRole) {
+            this.showPokerView = false;
+        }
         if (this.showInventory) {
             this.clearSidebar();
             this.drawInventory();

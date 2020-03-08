@@ -443,7 +443,7 @@ class Player {
     }
 
     canFold() {
-        return this.isActivePlayer() && this.inCurrentHand && this.game.round < 5 && this.currentBet < this.game.getHighestBet();
+        return this.isActivePlayer() && this.inCurrentHand && this.game.round < 5 && !this.isMatchingHighestBet() && !this.isAllIn();
     }
 
     canCall() {
