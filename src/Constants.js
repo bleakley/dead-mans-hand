@@ -115,6 +115,7 @@ export const TILE_POKER_TABLE = next();
 export const TILE_BENCH = next();
 export const TILE_CROSS = next();
 export const TILE_VAULT_DOOR = next();
+export const TILE_GRAVE = next();
 
 export const TILES = {};
 TILES[TILE_DIRT_1] = {
@@ -220,6 +221,14 @@ TILES[TILE_VAULT_DOOR] = {
     back: 'dimgray',
     blocksMove: true,
     blocksVision: true
+};
+TILES[TILE_GRAVE] = {
+    name: 'grave',
+    symbols: ['†'],
+    fore: 'white',
+    back: 'saddlebrown',
+    blocksMove: true,
+    blocksVision: false
 };
 
 export const XP_REQUIREMENTS = [

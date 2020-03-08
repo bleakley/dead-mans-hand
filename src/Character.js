@@ -1,5 +1,5 @@
-import { MALE_NAMES, LAST_NAMES, RANGE_POINT_BLANK, RANGE_CLOSE, RANGE_MEDIUM, RANGE_LONG, RANGES, XP_REQUIREMENTS, MAX_PATHFINDING_RADIUS } from "./Constants";
-import { Fist, Revolver, Knife, CanOfBeans, Shotgun, VaultKey, Rifle } from "./Item";
+import { MALE_NAMES, LAST_NAMES, RANGE_POINT_BLANK, RANGE_CLOSE, RANGE_MEDIUM, RANGE_LONG, RANGES, XP_REQUIREMENTS, MAX_PATHFINDING_RADIUS, TILE_GRAVE } from "./Constants";
+import { Fist, Revolver, Knife, CanOfBeans, Shotgun, VaultKey, Rifle, Shovel } from "./Item";
 import { Body, ShopItem, Cash } from "./Object";
 import { ItemSell, MoneyWithdrawl, MoneyDeposit } from "./CharacterInteraction";
 import { PokerStrategy } from "./PokerStrategy"
@@ -25,6 +25,7 @@ export class Character {
         this.buckshot = 0;
         this.arrows = 0;
         this.inventory = [];
+        this.bodyCarried = null;
         this.equippedWeapon = null;
         this.naturalWeapon = new Fist();
         this.initiative = 0;
@@ -311,6 +312,7 @@ export class Character {
     }
 
     move(x, y) {
+        this.previousSpace = { x: this.x, y: this.y };
         this.x = x;
         this.y = y;
     }
@@ -330,7 +332,7 @@ export class Character {
 
 export class PlayerCharacter extends Character {
     constructor() {
-        super(0, 0, 0, 0, 0, 0);
+        super(0, 1, 0, 0, 0, 2);
         this.name = 'Rodney';
         this.cents = 2000;
         this.isPC = true;
@@ -392,7 +394,8 @@ export class NonPlayerCharacter extends Character {
             gamble: 0,
             travel: 0,
             attackProvokers: 0,
-            defendBank: 0
+            defendBank: 0,
+            buryBodies: 0
         };
         this.winningStreak = 0;
         this.losingStreak = 0;
@@ -524,7 +527,35 @@ export class NonPlayerCharacter extends Character {
             }
         }
 
-        // At this point the NPC is not in combat, and is not worried about any immeadiate threats;
+        // At this point the NPC is not in combat, and is not worried about any immediate threats;
+
+        // Bury bodies if he's into that sort of thing
+        if (this.desires.buryBodies > 0) {
+            if (!this.nextGravePlot) {
+                this.nextGravePlot = this.getEmptyGravePlot();
+            }
+            if (this.bodyCarried) {
+                if (this.distanceBetween({x: this.nextGravePlot[0], y: this.nextGravePlot[1] }) <= 1) {
+                    this.buryBody(this.nextGravePlot[0], this.nextGravePlot[1]);
+                    return;
+                }
+                if (this.walkPathIfPossible(this.nextGravePlot[0], this.nextGravePlot[1])) {
+                    return;
+                }
+            }
+            let closestUnburiedBody = this.game.objects.filter(o => o.isBody).sort((a, b) => this.distanceBetween(a) - this.distanceBetween(b))[0];
+            if (closestUnburiedBody) {
+                if (this.distanceBetween(closestUnburiedBody) <= 1) {
+                    this.bodyCarried = closestUnburiedBody;
+                    _.remove(this.game.objects, closestUnburiedBody);
+                    return;
+                }
+                if (this.walkPathIfPossible(closestUnburiedBody.x, closestUnburiedBody.y)) {
+                    return;
+                }
+            }
+            
+        }
 
         // look for a game if he wants to gamble
         let nearestPokerGame = this.game.pokerGames.sort((a, b) => this.distanceBetween(a) - this.distanceBetween(b))[0];
@@ -636,6 +667,61 @@ export class Priest extends NonPlayerCharacter {
 
         this.cents = 2000;
 
+    }
+}
+
+export class Undertaker extends NonPlayerCharacter {
+    constructor(top, left, width, height) {
+        super(
+            _.sample([0, 0, 1, 2]), // Level
+            _.sample([1, 1, 2, 3]), // Strength
+            _.sample([0, 0, 0, 1]), // Quickness
+            _.sample([0, 0, 0, 1]), // Cunning
+            _.sample([0, 0, 0, 1]), // Guile
+            _.sample([1, 2, 3, 4]), // Grit
+        );
+        this.name = `${_.sample(MALE_NAMES)} ${_.sample(LAST_NAMES)}`;
+        this.symbol = '@';
+
+        this.cents = 150;
+
+        this.inventory.push(new Shovel(true));
+
+        this.cemetaryTop = top;
+        this.cemetaryLeft = left;
+        this.cemetaryWidth = width;
+        this.cemetaryHeight = height;
+
+        this.desires.buryBodies = 1;
+
+        this.nextGravePlot = null;
+
+    }
+
+    getEmptyGravePlot() {
+        let spaces = [];
+        for (let x = this.cemetaryLeft + 1; x < this.cemetaryLeft + this.cemetaryWidth; x++) {
+            for (let y = this.cemetaryTop + 3; y < this.cemetaryTop + this.cemetaryHeight; y += 2) {
+                if (x != this.cemetaryLeft + this.cemetaryWidth/2) {
+                    if (this.game.spaceIsPassable(x, y)) {
+                        spaces.push([x, y]);
+                    }
+                }
+            }
+        }        
+
+        if (spaces.length > 0) {
+            return _.sample(spaces);
+        }
+        else {
+            return null;
+        }
+    }
+
+    buryBody(x, y) {
+        this.bodyCarried = null;
+        this.game.map.setTile(x, y, TILE_GRAVE);
+        this.nextGravePlot = this.getEmptyGravePlot();
     }
 }
 

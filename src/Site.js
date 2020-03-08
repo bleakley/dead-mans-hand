@@ -1,5 +1,5 @@
 import { TILE_DIRT_1, TILE_DIRT_2, TILE_WOOD_FLOOR, TILE_WOOD_WALL, TILE_WOOD_DOOR, TILE_POKER_TABLE, TILE_BENCH, TILE_CROSS, TILE_VAULT_DOOR } from './Constants';
-import { Scoundrel, Priest, ShopKeep, Banker, Marshal } from './Character';
+import { Scoundrel, Priest, ShopKeep, Banker, Marshal, Undertaker } from './Character';
 import { ShopItem } from './Object';
 import { CanOfBeans } from './Item';
 
@@ -63,6 +63,10 @@ export class Town extends Site {
         parcel = _.sample(parcels);
         _.remove(parcels, parcel);
         this.createBank(parcel.top, parcel.left, 8, 8, parcel.orientation);
+
+        parcel = _.sample(parcels);
+        _.remove(parcels, parcel);
+        this.createGraveyard(parcel.top, parcel.left, 8, 8, parcel.orientation);
     }
 
     createGround() {
@@ -165,6 +169,12 @@ export class Town extends Site {
 
         let shopKeep = this.map.game.addCharacter(new ShopKeep(this.top + top, this.left + left, width, height), this.left + left + width/2, this.top + shopKeepY);
         this.map.game.addObject(new ShopItem(new CanOfBeans(), 50, shopKeep), this.left + left + 1, this.top + top + 1);
+
+    }
+
+    createGraveyard(top, left, width, height, orientation) {
+
+        let undertaker = this.map.game.addCharacter(new Undertaker(this.top + top, this.left + left, width, height), this.left + left + width/2, this.top + top + height/2);
 
     }
 

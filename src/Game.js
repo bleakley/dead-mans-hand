@@ -124,6 +124,10 @@ export class Game {
     playTurn() {
         this.turn++;
 
+        if (this.turn % 100 === 0 && _.random(1, 2) === 1) {
+            this.addCharacter(new Scoundrel, _.sample([-25, 25]), _.sample([-25, 25]));
+        }
+
         this.pokerGames.forEach(g => {
             g.tick();
         });

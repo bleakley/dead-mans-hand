@@ -201,6 +201,25 @@ export class View {
                 }
             }
         }
+        //draw dragged bodies
+        for (let x = -halfWidth; x < halfWidth + widthOdd ? 1 : 0; x++) {
+            for (let y = -halfHeight; y < halfHeight + heightOdd ? 1 : 0; y++) {
+                let displayX = x + halfWidth;
+                let displayY = y + halfHeight;
+                let { x: mapX, y: mapY } = this.displayCoordsToMapCoords({ x: displayX, y: displayY });
+
+                let cellContents = this.game.getCellContents(mapX, mapY);
+                let tile = TILES[cellContents.terrain];
+
+                if (cellContents.characters.length) {
+                    if (cellContents.characters[0].bodyCarried) {
+                        let dragSpace = this.mapCoordsToDisplayCoords(cellContents.characters[0].previousSpace);
+                        this.display.draw(dragSpace.x, dragSpace.y, '&', 'white', tile.back);
+                    }
+                }
+            }
+        }
+
         if (this.showInventory) {
             this.clearSidebar();
             this.drawInventory();

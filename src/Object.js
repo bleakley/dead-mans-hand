@@ -37,6 +37,7 @@ export class Body extends Object {
     constructor(character) {
         super('body (' + character.name + ')', '&', 'white')
         this.character = character;
+        this.isBody = true;
     }
 
     getInteractions() {
