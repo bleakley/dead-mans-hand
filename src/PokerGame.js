@@ -336,7 +336,7 @@ class Player {
     }
 
     getMinValidBet() {
-        return Math.min(this.game.getHighestBet(), Math.max(this.character.cents, 1));
+        return Math.min(this.game.bigBlind, this.character.cents);
     }
 
     getMaxValidRaise() {

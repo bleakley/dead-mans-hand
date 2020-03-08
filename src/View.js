@@ -366,7 +366,7 @@ export class View {
                 if (pokerRole.canRaise()) {
                     commands.push({
                         key: 'R',
-                        description: `raise`
+                        description: `raise  ${formatMoney(this.tempRaiseValue)}`
                     });
                     if (canIncreaseRaise && canDecreaseRaise) {
                         commands.push({
