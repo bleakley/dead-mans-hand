@@ -208,7 +208,7 @@ export class Character {
         let distance = this.distanceBetween(target);
         let range = [RANGE_POINT_BLANK, RANGE_CLOSE, RANGE_MEDIUM, RANGE_LONG].find(r => distance >= RANGES[r].min && distance <= RANGES[r].max);
 
-        let rangeBonus = weapon.rangeModifiers[range];
+        let rangeBonus = weapon.rangeModifiers ? weapon.rangeModifiers[range] : 0;
 
         let attackBonus = weapon.isMelee ? this.getMeleeAttack() : (this.getRangedAttack() + rangeBonus);
         let attackRoll = _.random(1, 20);
@@ -413,11 +413,36 @@ export class NonPlayerCharacter extends Character {
         if (this.x === x && this.y === y) {
             return true;
         }
+
         if (Math.abs(x - this.x) > MAX_PATHFINDING_RADIUS || Math.abs(y - this.y) > MAX_PATHFINDING_RADIUS) {
             return false;
         }
 
         return !this.game.isSpaceBlocked(x, y);
+    }
+
+    walkPathIfPossible(x, y) {
+        this.generateNewPathIfRequired(x, y);
+
+        if (!this.spaceIsValidPath(this.path[0].x, this.path[0].y)) {
+            let charactersInTheWay = this.game.getCharacters(this.path[0].x, this.path[0].y);
+            if (charactersInTheWay.length) {
+                this.modifyOpinionOf(charactersInTheWay[0], -1);
+                this.say('Get out of my way!');
+                console.log(this.name + ' is blocking ' + charactersInTheWay[0].name);
+            }
+            this.generateNewPathIfRequired(x, y);
+        }
+
+        if (this.path.length) {
+            let nextSpace = this.path.shift();
+            if (this.spaceIsValidPath(nextSpace.x, nextSpace.y)) {
+                this.move(nextSpace.x, nextSpace.y);
+                return true;
+            }
+        }
+
+        return false;
     }
 
     takeTurn() {
@@ -457,16 +482,7 @@ export class NonPlayerCharacter extends Character {
 
             let destination = threats[0];
 
-            this.generateNewPathIfRequired(destination.x, destination.y);
-            // here we would walk towards the nearest threat
-
-            if (this.game.isSpaceBlocked(this.path[0].x, this.path[0].y)) {
-                this.generateNewPathIfRequired(destination.x, destination.y);
-            }
-
-            if (!this.game.isSpaceBlocked(this.path[0].x, this.path[0].y)) {
-                let nextSpace = this.path.shift();
-                this.move(nextSpace.x, nextSpace.y);
+            if (this.walkPathIfPossible(destination.x, destination.y)) {
                 return;
             }
 

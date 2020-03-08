@@ -130,7 +130,7 @@ export class Game {
     }
 
     isSpaceBlocked(x, y) {
-        if(this.map.getTile(x, y).blocksMove) {
+        if(TILES[this.map.getTile(x, y)].blocksMove) {
             return true;
         }
 
