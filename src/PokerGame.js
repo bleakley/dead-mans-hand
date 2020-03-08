@@ -285,7 +285,7 @@ class Player {
     }
 
     getBestCard() {
-        let sortedHole = this.hole.sort( (c1, c2) => c2.value*4 + c2.suit - c1.value*4 - c1.suit);
+        let sortedHole = this.hole.concat().sort( (c1, c2) => c2.value*4 + c2.suit - c1.value*4 - c1.suit);
         return sortedHole[0]
     }
 
