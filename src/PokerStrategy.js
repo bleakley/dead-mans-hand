@@ -33,7 +33,6 @@ class BucketStrategy {
                 let options = [{action: raise, weight: this.raiseProbability}, 
                                 {action: call, weight: this.callProbability},
                                 {action: fold, weight: 1 -  this.raiseProbability - this.callProbability}]
-                console.log(chooseRandom(options))
                 chooseRandom(options)()
             }
             else {
@@ -41,8 +40,7 @@ class BucketStrategy {
                 let fold = () => {pokerPlayerRole.fold()}
                 let options = [ {action: call, weight: this.callProbability},
                                 {action: fold, weight: 1 -  this.raiseProbability -this.callProbability}]
-                                console.log(chooseRandom(options))
-                                chooseRandom(options)()
+                chooseRandom(options)()
             }
         }
         else if (pokerPlayerRole.canCheck()) {
@@ -51,8 +49,7 @@ class BucketStrategy {
                 let check = () => {pokerPlayerRole.check()}
                 let options = [{action: bet, weight: this.betProbability}, 
                                 {action: check, weight: 1 - this.betProbability}]
-                                console.log(chooseRandom(options))
-                                chooseRandom(options)()
+                chooseRandom(options)()
             }
             else {
                 pokerPlayerRole.check();

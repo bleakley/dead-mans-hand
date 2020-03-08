@@ -88,6 +88,7 @@ export class PokerGame {
     }
 
     tick() {
+        console.log(this)
         this.waitingForActivePlayerAction = false;
         this.waitingForDealerAction = false;
         if (this.round === 0 && (this.players.length + this.playersWaitingToJoinHand.length) >= 2) {
@@ -100,7 +101,12 @@ export class PokerGame {
             return;
         }
 
-        if (this.allPlayersHaveActed()) {
+        if (this.players.filter(p => p.inCurrentHand).length == 1 && !this.players.filter(p => p.inCurrentHand)[0].cardsMucked && this.round > 0) {
+            this.dividePot();
+            this.players.filter(p => p.inCurrentHand)[0].muckCards();
+            this.waitingForActivePlayerAction = false;
+        }
+        else if (this.allPlayersHaveActed()) {
             if (this.round === 6) {
                 this.cleanUp();
                 this.dealer = this.getNextPlayer(this.dealer, false);
@@ -136,7 +142,6 @@ export class PokerGame {
     }
 
     allPlayersHaveActed() {
-        console.log(this.players)
         if (this.round < 5) {
             return this.players.filter(p => p.inCurrentHand && !p.isAllIn()).every(p => p.hasTakenActionSinceLastRaise);
         }
@@ -207,7 +212,7 @@ export class PokerGame {
 
     dividePot() {
         this.round = 6;
-        let winners = this.players.filter(p => compareHands(this.winningHand, p.bestHand()) === 0);
+        let winners = this.players.filter(p => p.inCurrentHand).filter(p => compareHands(this.winningHand, p.bestHand()) === 0);
         winners.map(p => p.character.say('I win!'));
 
         let undividedMoney = 0;
