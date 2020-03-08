@@ -1,5 +1,5 @@
 import { Map } from './Map'
-import { PlayerCharacter } from './Character';
+import { PlayerCharacter, Scoundrel } from './Character';
 import { TILES } from './Constants';
 import { PokerGame } from './PokerGame';
 
@@ -27,6 +27,13 @@ export class Game {
         character.y = y;
         character.game = this;
         return character;
+    }
+
+    removeCharacter(character) {
+        if (character.activePokerPlayerRole) {
+            character.activePokerPlayerRole.game.removePlayer(character.activePokerPlayerRole);
+        }
+        _.remove(this.characters, character);
     }
 
     addObject(object, x, y) {

@@ -451,6 +451,10 @@ export class NonPlayerCharacter extends Character {
     walkPathIfPossible(x, y) {
         this.generateNewPathIfRequired(x, y);
 
+        if (!this.path.length) {
+            return false;
+        }
+
         if (!this.spaceIsValidPath(this.path[0].x, this.path[0].y)) {
             let charactersInTheWay = this.game.getCharacters(this.path[0].x, this.path[0].y);
             if (charactersInTheWay.length) {
@@ -522,6 +526,18 @@ export class NonPlayerCharacter extends Character {
 
         // At this point the NPC is not in combat, and is not worried about any immeadiate threats;
 
+        // look for a game if he wants to gamble
+        let nearestPokerGame = this.game.pokerGames.sort((a, b) => this.distanceBetween(a) - this.distanceBetween(b))[0];
+        if (nearestPokerGame && !this.activePokerPlayerRole && this.desires.gamble > 0) {
+            if (this.distanceBetween(nearestPokerGame) === 1) {
+                this.join(nearestPokerGame);
+                return;
+            }
+            if (this.walkPathIfPossible(nearestPokerGame.x, nearestPokerGame.y)) {
+                return;
+            }
+        }
+
         let pokerPlayerRole = this.activePokerPlayerRole;
         if (pokerPlayerRole && pokerPlayerRole.isActivePlayer() && pokerPlayerRole.game.waitingForActivePlayerAction) {
             this.pokerStrategy.play(pokerPlayerRole);
@@ -532,6 +548,23 @@ export class NonPlayerCharacter extends Character {
         if (pokerPlayerRole && pokerPlayerRole.isDealer() && pokerPlayerRole.game.waitingForDealerAction) {
             pokerPlayerRole.deal();
             return;
+        }
+
+        // should we check here if a character wants to leave a poker game?
+
+        // check if the character wants to leave the map
+        if (!this.activePokerPlayerRole && this.desires.travel > 10) {
+            if (this.x < -50 && this.distanceBetween(this.game.player) > 100) {
+                this.game.removeCharacter(this);
+                return;
+            }
+            if (this.y === 0 && Math.abs(this.x) < 3 && this.spaceIsValidPath(this.x - 1, this.y)) {
+                this.move(this.x - 1, this.y);
+                return;
+            }
+            if (this.walkPathIfPossible(0, 0)) {
+                return;
+            }
         }
 
         this.wait();
@@ -582,6 +615,7 @@ export class Scoundrel extends NonPlayerCharacter {
         this.cents = 2000;
 
         this.desires.attackProvokers = 1;
+        this.desires.gamble = 10;
 
     }
 

@@ -3,7 +3,7 @@ export const GAME_WINDOW_HEIGHT = 45;
 export const SIDEBAR_WIDTH = 30;
 export const MESSAGE_LOG_HEIGHT = 10;
 
-export const MAX_PATHFINDING_RADIUS = 100;
+export const MAX_PATHFINDING_RADIUS = 150;
 
 export function fromSeed(seed, max = 1, min = 0) {
 
