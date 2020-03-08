@@ -19,6 +19,7 @@ function chooseRandom(options) {
         }
         cumulativeValue += options[option];
     }
+    console.log(options)
     throw "No option chosen"; 
 }
 
@@ -117,6 +118,7 @@ export class PokerStrategy {
     }
 
     chooseAction(gameState) {
+        console.log(gameState);
         return chooseRandom(this.sigma[getGameStateString(gameState)])
     }
 

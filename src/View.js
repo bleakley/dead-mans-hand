@@ -8,8 +8,17 @@ const halfHeight = Math.floor(GAME_WINDOW_HEIGHT / 2);
 const widthOdd = GAME_WINDOW_WIDTH % 2 !== 0;
 const heightOdd = GAME_WINDOW_HEIGHT % 2 !== 0;
 
-const formatCards = function (cards, hidden = false) {
-    return cards.map(card => `%c{${hidden ? 'black' : card.getColor()}}%b{white}${hidden ? '??' : card.toString()}%c{white}%b{black}`).join(' ') + `%c{}`;
+const formatCards = function (cards, hidden = false, inCurrentHand=true) {
+    let color = inCurrentHand ? 'white' : 'gray';
+    let getCorrectedCardColor = color => {
+        if (color == 'red' && !inCurrentHand) {
+            return 'darkred';
+        }
+        else {
+            return color;
+        }
+    }
+    return cards.map(card => `%c{${hidden ? 'black' : getCorrectedCardColor(card.getColor())}}%b{${color}}${hidden ? '??' : card.toString()}%c{white}%b{black}`).join(' ') + `%c{}`;
 }
 
 export class View {
@@ -496,8 +505,8 @@ export class View {
         this.drawSidebarRow(y, _.capitalize(weapon.name), ammoString, highlighted);
     }
 
-    drawCardSidebarRow(y, label, cards, hidden, description = '') {
-        this.display.drawText(GAME_WINDOW_WIDTH + 1, y, `${label} ${formatCards(cards, hidden)}${description}`);
+    drawCardSidebarRow(y, label, cards, hidden, inCurrentHand=true, description = '') {
+        this.display.drawText(GAME_WINDOW_WIDTH + 1, y, `${label} ${formatCards(cards, hidden, inCurrentHand)}${description}`);
     }
 
     drawSidebarRow(y, leftCol = '', rightCol = '', highlighted) {
@@ -564,10 +573,17 @@ export class View {
         if (cardsVisible && player.hole.length >= 2) {
             cardsDescription = ` (${player.bestHand().match})`;
         }
-        this.drawSidebarRow(y + 0, player.character.name + roleString);
+
+        let colorString = ''
+        console.log(player)
+        if (player.isActivePlayer() && player.game.round != 6 && player.game.round != 0) {
+            colorString = '%c{white}';
+        }
+            
+        this.drawSidebarRow(y + 0, colorString + player.character.name + roleString);
         this.drawSidebarRow(y + 1, 'Cash:', formatMoney(player.character.cents));
         this.drawSidebarRow(y + 2, 'Current bet:', formatMoney(player.currentBet));
-        this.drawCardSidebarRow(y + 3, `Cards:`, player.hole, !cardsVisible, cardsDescription);
+        this.drawCardSidebarRow(y + 3, `Cards:`, player.hole, !cardsVisible, player.inCurrentHand, cardsDescription);
     }
 
     drawPokerSidebar() {

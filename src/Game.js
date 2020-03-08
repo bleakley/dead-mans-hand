@@ -225,14 +225,14 @@ export class Game {
             this.repopulateMap();
         }
 
-        this.pokerGames.forEach(g => {
-            g.tick();
-        });
-
         this.characters.forEach(c => {
             if (c.isNPC) {
                 c.takeTurn();
             }
+        });
+
+        this.pokerGames.forEach(g => {
+            g.tick();
         });
 
     }
