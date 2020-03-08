@@ -1,7 +1,7 @@
 import { analyzeHand } from "./PokerUtils";
-import { CRM } from "./CRM"
+import { Strategy } from "./CRM"
 
-let myCRM = new CRM();
+let myStrategy = new Strategy();
 
 function chooseRandom(options) {
     let sum = 0;
