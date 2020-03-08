@@ -71,3 +71,15 @@ export class MoneyLoot extends ObjectInteraction {
         this.object.character.cents = 0;
     }
 }
+
+export class AmmoLoot extends ObjectInteraction {
+    constructor(object, ammoType) {
+        super(object, 'Loot ' + object.character[ammoType] + ' ' + ammoType);
+        this.ammoType = ammoType;
+    }
+
+    onInteract(character) {
+        character[this.ammoType] += this.object.character[this.ammoType];
+        this.object.character[this.ammoType] = 0;
+    }
+}

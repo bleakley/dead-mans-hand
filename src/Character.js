@@ -354,7 +354,7 @@ export class Character {
 
 export class PlayerCharacter extends Character {
     constructor() {
-        super(0, 1, 0, 0, 0, 2);
+        super(0, 1, 0, 0, 0, 1);
         this.name = 'Rodney';
         this.cents = 2000;
         this.isPC = true;
