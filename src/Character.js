@@ -671,6 +671,9 @@ export class Scoundrel extends NonPlayerCharacter {
         this.color = _.sample(['purple', 'lawngreen', 'deeppink']);
         this.profession = 'Scoundrel';
 
+        this.inventory.push(_.sample([new Knife(), new Pistol(true), new Pistol(true), new Revolver(true)]));
+        this.bullets = 20;
+
         this.cents = 2000;
 
         this.desires.attackProvokers = 1;
@@ -862,7 +865,7 @@ export class LakotaScout extends NonPlayerCharacter {
 
         this.cents = 0;
 
-        this.inventory.push(_.sample([new Pistol(), new Rifle(), new Bow()]));
+        this.inventory.push(_.sample([new Pistol(true), new Rifle(true), new Bow()]));
         this.inventory.push(new Knife());
         this.arrows = 20;
         this.bullets = 20;
@@ -887,7 +890,7 @@ export class LakotaWarrior extends NonPlayerCharacter {
 
         this.cents = 0;
 
-        this.inventory.push(new Rifle());
+        this.inventory.push(new Rifle(true));
         this.inventory.push(new Axe());
         this.bullets = 30;
 
