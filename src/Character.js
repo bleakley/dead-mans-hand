@@ -2,6 +2,7 @@ import { MALE_NAMES, LAST_NAMES, RANGE_POINT_BLANK, RANGE_CLOSE, RANGE_MEDIUM, R
 import { Fist, Revolver, Knife, CanOfBeans, Shotgun, Bow } from "./Item";
 import { Body, ShopItem, Cash } from "./Object";
 import { ItemSell, MoneyWithdrawl, MoneyDeposit } from "./CharacterInteraction";
+import { PokerStrategy } from "./PokerStrategy"
 
 export class Character {
     constructor(level, strength, quickness, cunning, guile, grit) {
@@ -41,6 +42,8 @@ export class Character {
 
         this.utterance = '';
         this.activePokerPlayerRole = null;
+
+        this.pokerStrategy = new PokerStrategy(_.sample([0.25, 0.5, 0.75, 1]));
     }
 
     onGameStart() {
@@ -403,7 +406,7 @@ export class NonPlayerCharacter extends Character {
 
         let pokerPlayerRole = this.activePokerPlayerRole;
         if (pokerPlayerRole && pokerPlayerRole.isActivePlayer() && pokerPlayerRole.game.waitingForActivePlayerAction) {
-            pokerPlayerRole.play();
+            this.pokerStrategy.play(pokerPlayerRole);
             pokerPlayerRole.game.activePlayer = pokerPlayerRole.game.getNextPlayer(pokerPlayerRole, true);
             return;
         }

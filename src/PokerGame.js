@@ -364,17 +364,6 @@ class Player {
         return this.game.getHighestBet() - this.currentBet;
     }
 
-    play() {
-        if (this.game.round === 5 && !this.cardsRevealed && !this.cardsMucked) {
-            return this.revealCards();
-        }
-        if (this.canCheck()) {
-            this.check();
-        } else {
-            this.call();
-        }
-    }
-
     canReveal() {
         return this.inCurrentHand && !this.cardsRevealed;
     }
