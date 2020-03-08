@@ -51,7 +51,9 @@ export class Character {
         this.utterance = '';
         this.activePokerPlayerRole = null;
 
-        this.pokerStrategy = new PokerStrategy(_.sample([0.25, 0.5, 0.75, 1]));
+        let possibleStrategyAggressiveness = [0.5, 0.75, 1];
+        let possibleStrategyCheatiness = [0.5, 0.75, 1];
+        this.pokerStrategy = new PokerStrategy(_.sample(possibleStrategyAggressiveness), _.sample(possibleStrategyCheatiness));
     }
 
     onGameStart() {
@@ -123,7 +125,12 @@ export class Character {
     }
 
     say(utterance) {
-        this.utterance = utterance;
+        if (this.utterance) {
+            this.utterance += ' ' + utterance;
+        }
+        else {
+            this.utterance = utterance;
+        }
     }
 
     wait() {
@@ -307,6 +314,18 @@ export class Character {
         this.x = x;
         this.y = y;
     }
+
+    onCheated(target) {
+        let roll = _.random(1, 10) + target.subterfuge;
+        console.log(target.name + ' tries to cheat ' + this.name + ': ' + roll.toString() + ' vs ' + this.vigilance.toString())
+        if (roll < this.vigilance) {
+            console.log(this.name + ' catches ' + target.name + ' cheating');
+            this.onCatchesCheater(target);
+        }
+    }
+
+    onCatchesCheater(target) {
+    }
 }
 
 export class PlayerCharacter extends Character {
@@ -358,6 +377,11 @@ export class PlayerCharacter extends Character {
     onKill(target) {
         this.gainXp(5);
     }
+
+    onCatchesCheater(target) {
+        this.game.log("You caught " + target.name + " cheating!");
+    }
+
 }
 
 export class NonPlayerCharacter extends Character {
@@ -533,6 +557,12 @@ export class NonPlayerCharacter extends Character {
 
     onKill(target) {
     }
+    
+    onCatchesCheater(target) {
+        this.say(target.name + ", I think you're cheating.");
+        this.modifyOpinionOf(target, -5);
+    }
+
 }
 
 

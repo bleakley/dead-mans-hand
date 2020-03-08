@@ -173,6 +173,14 @@ export class Controller {
                         playerTookAction = true;
                     }
                     break;
+                case 90: // z
+                    // fold and keep best card
+                    if (player.activePokerPlayerRole && player.activePokerPlayerRole.canFold()) {
+                        player.activePokerPlayerRole.foldAndKeepBestCard();
+                        player.activePokerPlayerRole.game.activePlayer = player.activePokerPlayerRole.game.getNextPlayer(player.activePokerPlayerRole, true);
+                        playerTookAction = true;
+                    }
+                    break;
                 case 49: // 1
                     if (player.getAllowedInteractions().length >= 1) {
                         player.getAllowedInteractions()[0].onInteract(player);                    
