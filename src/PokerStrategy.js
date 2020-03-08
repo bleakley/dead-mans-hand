@@ -58,6 +58,9 @@ function getGameStateString(gameState) {
     let str = '';
     let props = Object.keys(gameState).sort()
     for (let prop of props) {
+        if (Array.isArray(gameState[prop])) {
+            gameState[prop].sort()
+        }
         str += gameState[prop].toString() + ',';
     }
     return str;
@@ -132,4 +135,125 @@ export class PokerStrategy {
         performAction(pokerPlayerRole, action);
     }
 
+}
+
+
+export class BasicPokerStrategy extends PokerStrategy {
+    constructor (aggressiveness, cheatiness) {
+        super();
+        this.aggressiveness = aggressiveness;
+        this.cheatiness = cheatiness;
+
+        let gameState = {}
+
+        // Pre-flop
+        gameState.handStrength = 0;
+        gameState.round = 1;
+        for (gameState.communityHandStrength of [0, 1, 2]) {
+            gameState.actions = ['call', 'raise', 'fold', 'fold-and-keep'];
+            let probabilities = [];
+            probabilities['call'] = 0.2*(1 - this.aggressiveness);
+            probabilities['raise'] = 0.2*this.aggressiveness;
+            probabilities['fold'] = 0.8*(1 - this.cheatiness);
+            probabilities['fold-and-keep'] = 0.8*this.cheatiness;
+            this.setProbabilities(gameState, probabilities);
+
+            gameState.actions = ['bet', 'check'];
+            probabilities = [];
+            probabilities['bet'] = 0.1*this.aggressiveness;
+            probabilities['check'] = 0.9 + 0.1*(1 - this.aggressiveness);
+            this.setProbabilities(gameState, probabilities);
+        }
+
+        gameState.handStrength = 1;
+        gameState.round = 1;
+        for (gameState.communityHandStrength of [0, 1, 2]) {
+            gameState.actions = ['call', 'raise', 'fold', 'fold-and-keep'];
+            let probabilities = [];
+            probabilities['call'] = 0.8*(1 - this.aggressiveness);
+            probabilities['raise'] = 0.8*this.aggressiveness;
+            probabilities['fold'] = 0.2*(1 - this.cheatiness);
+            probabilities['fold-and-keep'] = 0.2*this.cheatiness;
+            this.setProbabilities(gameState, probabilities);
+
+            gameState.actions = ['bet', 'check'];
+            probabilities = [];
+            probabilities['bet'] = 1.0*this.aggressiveness;
+            probabilities['check'] = 1.0*(1 - this.aggressiveness);
+            this.setProbabilities(gameState, probabilities);
+        }
+
+        gameState.handStrength = 2;
+        gameState.round = 1;
+        for (gameState.communityHandStrength of [0, 1, 2]) {
+            gameState.actions = ['call', 'raise', 'fold', 'fold-and-keep'];
+            let probabilities = [];
+            probabilities['call'] = 0.8 + 0.1*(1 - this.aggressiveness);
+            probabilities['raise'] = 0.1*this.aggressiveness;
+            probabilities['fold'] = 0.1*(1 - this.cheatiness);
+            probabilities['fold-and-keep'] = 0.1*this.cheatiness;
+            this.setProbabilities(gameState, probabilities);
+
+            gameState.actions = ['bet', 'check'];
+            probabilities = [];
+            probabilities['bet'] = 0.2*this.aggressiveness;
+            probabilities['check'] = 0.8 + 0.2*(1 - this.aggressiveness);
+            this.setProbabilities(gameState, probabilities);
+        }
+
+        // Turn, river, flop
+        for (gameState.round = 2; gameState.round < 5; gameState.round++) {
+            gameState.handStrength = 0;
+            for (gameState.communityHandStrength of [0, 1, 2]) {
+                gameState.actions = ['call', 'raise', 'fold', 'fold-and-keep'];
+                let probabilities = [];
+                probabilities['call'] = 0.1*(1 - this.aggressiveness);
+                probabilities['raise'] = 0.1*this.aggressiveness;
+                probabilities['fold'] = 0.9*(1 - this.cheatiness);
+                probabilities['fold-and-keep'] = 0.9*this.cheatiness;
+                this.setProbabilities(gameState, probabilities);
+
+                gameState.actions = ['bet', 'check'];
+                probabilities = [];
+                probabilities['bet'] = 0.1*this.aggressiveness;
+                probabilities['check'] = 0.9 + 0.1*(1 - this.aggressiveness);
+                this.setProbabilities(gameState, probabilities);
+            }
+
+            gameState.handStrength = 1;
+            for (gameState.communityHandStrength of [0, 1, 2]) {
+                gameState.actions = ['call', 'raise', 'fold', 'fold-and-keep'];
+                let probabilities = [];
+                probabilities['call'] = 0.5*(1 - this.aggressiveness);
+                probabilities['raise'] = 0.5*this.aggressiveness;
+                probabilities['fold'] = 0.5*(1 - this.cheatiness);
+                probabilities['fold-and-keep'] = 0.5*this.cheatiness;
+                this.setProbabilities(gameState, probabilities);
+
+                gameState.actions = ['bet', 'check'];
+                probabilities = [];
+                probabilities['bet'] = 0.5 + 0.5*this.aggressiveness;
+                probabilities['check'] = 0.5*(1 - this.aggressiveness);
+                this.setProbabilities(gameState, probabilities);
+            }
+
+            gameState.handStrength = 2;
+            for (gameState.communityHandStrength of [0, 1, 2]) {
+                gameState.actions = ['call', 'raise', 'fold', 'fold-and-keep'];
+                let probabilities = [];
+                probabilities['call'] = 0.8*(1 - this.aggressiveness);
+                probabilities['raise'] = 0.8*this.aggressiveness;
+                probabilities['fold'] = 0.1*(1 - this.cheatiness);
+                probabilities['fold-and-keep'] = 0.1*this.cheatiness;
+                this.setProbabilities(gameState, probabilities);
+
+                gameState.actions = ['bet', 'check'];
+                probabilities = [];
+                probabilities['bet'] = 0.8*this.aggressiveness;
+                probabilities['check'] = 0.2 + 0.8*(1 - this.aggressiveness);
+                this.setProbabilities(gameState, probabilities);
+            }
+        }
+    }
+    
 }

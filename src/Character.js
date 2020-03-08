@@ -2,7 +2,7 @@ import { MALE_NAMES, LAST_NAMES, RANGE_POINT_BLANK, RANGE_CLOSE, RANGE_MEDIUM, R
 import { Fist, Revolver, Knife, CanOfBeans, Shotgun, VaultKey, Rifle } from "./Item";
 import { Body, ShopItem, Cash } from "./Object";
 import { ItemSell, MoneyWithdrawl, MoneyDeposit } from "./CharacterInteraction";
-import { PokerStrategy } from "./PokerStrategy"
+import { BasicPokerStrategy } from "./PokerStrategy"
 import * as ROT from 'rot-js';
 
 let characterCounter = 0;
@@ -51,7 +51,9 @@ export class Character {
         this.utterance = '';
         this.activePokerPlayerRole = null;
 
-        this.pokerStrategy = new PokerStrategy();
+        let aggressiveness = _.sample([0., 0.25, 0.5, 0.75, 1.0]);
+        let cheatiness = _.sample([0., 0.25, 0.5, 0.75, 1.0]);
+        this.pokerStrategy = new BasicPokerStrategy(aggressiveness, cheatiness);
     }
 
     onGameStart() {
