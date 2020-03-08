@@ -60,10 +60,10 @@ export class PokerGame {
         player.character.activePokerPlayerRole = null;
     }
 
-    orderPlayers() {
+    getPlayersInOrder() {
         const clockwiseOrder = ['0,-1', '1,-1', '1,0', '1,1', '0,1', '-1,1', '-1,0', '-1,-1'];
 
-        this.players = this.players.sort((p1, p2) => {
+        return this.players.sort((p1, p2) => {
             let i1 = clockwiseOrder.findIndex(p => p === `${p1.character.x - this.x},${p1.character.y - this.y}`);
             let i2 = clockwiseOrder.findIndex(p => p === `${p2.character.x - this.x},${p2.character.y - this.y}`);
             if (i1 === -1 || i2 === -1) {
@@ -75,8 +75,7 @@ export class PokerGame {
 
     getNextPlayer(previousPlayer, inCurrentHand) {
 
-        this.orderPlayers();
-        let playersOrderedClockwise = inCurrentHand ? this.players.filter(p => p.inCurrentHand) : this.players;
+        let playersOrderedClockwise = inCurrentHand ? this.getPlayersInOrder().filter(p => p.inCurrentHand) : this.getPlayersInOrder();
 
         let position = playersOrderedClockwise.findIndex(p => p === previousPlayer);
         let nextPosition = position + 1;
@@ -88,7 +87,6 @@ export class PokerGame {
     }
 
     tick() {
-        console.log(this)
         this.waitingForActivePlayerAction = false;
         this.waitingForDealerAction = false;
         if (this.round === 0 && (this.players.length + this.playersWaitingToJoinHand.length) >= 2) {
@@ -386,7 +384,7 @@ class Player {
     }
 
     canFold() {
-        return this.isActivePlayer() && this.inCurrentHand;
+        return this.isActivePlayer() && this.inCurrentHand && this.game.round < 5 && this.currentBet < this.game.getHighestBet();
     }
 
     canCall() {

@@ -555,7 +555,7 @@ export class View {
         this.drawSidebarRow(3, `Pot:`, `${formatMoney(pokerGame.getPot())}`);
         this.drawCardSidebarRow(4, `Common:`, pokerGame.communityCards);
 
-        pokerGame.players.forEach((player, index) => {
+        pokerGame.getPlayersInOrder().forEach((player, index) => {
             this.drawPokerPlayerStatblock(6 + (index * 5), player);
         });
 
