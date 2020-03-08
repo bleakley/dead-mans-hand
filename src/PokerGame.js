@@ -159,10 +159,6 @@ export class PokerGame {
 
         this.players.forEach(player => {
             player.inCurrentHand = true;
-            if (player.extraCard) {
-                player.takeCard(player.extraCard);
-                player.extraCard = null;
-            }
             player.takeCard(this.deck.draw());
             player.takeCard(this.deck.draw());
         });
@@ -318,8 +314,16 @@ class Player {
     }
 
     discardCards() {
-        this.game.discardPile = this.game.discardPile.concat(this.hole);
-        this.hole = [];
+        if (!this.extraCard) {
+            this.game.discardPile = this.game.discardPile.concat(this.hole);
+            this.hole = [];
+        }
+        else {
+            this.game.discardPile = this.game.discardPile.concat(this.hole.filter(c => c !== this.extraCard));
+            this.hole = [this.extraCard];
+            this.extraCard = null;
+        }
+
     }
 
     deal() {
