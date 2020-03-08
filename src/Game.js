@@ -96,8 +96,7 @@ export class Game {
 
         if (this.spaceIsPassable(newX, newY)) {
             this.player.startTurn();
-            this.player.x = newX;
-            this.player.y = newY;
+            this.player.move(newX, newY);
             return true;
         } else if (this.getPokerGame(newX, newY)) {
             this.player.startTurn();
@@ -127,6 +126,19 @@ export class Game {
                 c.takeTurn();
             }
         });
+
+    }
+
+    isSpaceBlocked(x, y) {
+        if(this.map.getTile(x, y).blocksMove) {
+            return true;
+        }
+
+        if(this.getCharacters(x, y).length) {
+            return true;
+        }
+
+        return false;
 
     }
 

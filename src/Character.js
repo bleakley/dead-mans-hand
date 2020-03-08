@@ -1,8 +1,14 @@
-import { MALE_NAMES, LAST_NAMES, RANGE_POINT_BLANK, RANGE_CLOSE, RANGE_MEDIUM, RANGE_LONG, RANGES, XP_REQUIREMENTS } from "./Constants";
-import { Fist, Revolver, Knife, CanOfBeans, Shotgun, Bow } from "./Item";
+import { MALE_NAMES, LAST_NAMES, RANGE_POINT_BLANK, RANGE_CLOSE, RANGE_MEDIUM, RANGE_LONG, RANGES, XP_REQUIREMENTS, MAX_PATHFINDING_RADIUS } from "./Constants";
+import { Fist, Revolver, Knife, CanOfBeans, Shotgun, VaultKey, Rifle } from "./Item";
 import { Body, ShopItem, Cash } from "./Object";
 import { ItemSell, MoneyWithdrawl, MoneyDeposit } from "./CharacterInteraction";
 import { PokerStrategy } from "./PokerStrategy"
+import * as ROT from 'rot-js';
+
+let characterCounter = 0;
+let nextCharacterId = () => characterCounter++;
+
+let opinionMap = [];
 
 export class Character {
     constructor(level, strength, quickness, cunning, guile, grit) {
@@ -11,6 +17,8 @@ export class Character {
         this.color = 'white';
         this.isPC = false;
         this.isNPC = true;
+
+        this.id = nextCharacterId();
 
         this.cents = 0;
         this.bullets = 0;
@@ -47,6 +55,28 @@ export class Character {
     }
 
     onGameStart() {
+    }
+
+    getOpinionOf(other) {
+        if (!opinionMap.hasOwnProperty(this.id)) {
+            opinionMap[this.id] = [];
+            opinionMap[this.id][other.id] = 0;
+        } else if (!opinionMap[this.id].hasOwnProperty(other.id)) {
+            opinionMap[this.id][other.id] = 0;
+        }
+        return opinionMap[this.id][other.id];
+    }
+
+    setOpinionOf(other, opinion) {
+        if (!opinionMap.hasOwnProperty(this.id)) {
+            opinionMap[this.id] = [];
+        }
+        opinionMap[this.id][other.id] = opinion;
+        return opinionMap[this.id][other.id];
+    }
+
+    modifyOpinionOf(other, opinionChange) {
+        return this.setOpinionOf(other, this.getOpinionOf(other) + opinionChange);
     }
 
     getDisplayChar() {
@@ -152,7 +182,7 @@ export class Character {
     }
 
     isHostileTo(other) {
-        if (other.isPC && this.opinionOfPC <= -10) {
+        if (this.getOpinionOf(other) <= -10) {
             return true;
         }
         return false;
@@ -162,6 +192,9 @@ export class Character {
         let weapon = this.getCurrentWeapon();
         let distance = this.distanceBetween(target);
         let range = [RANGE_POINT_BLANK, RANGE_CLOSE, RANGE_MEDIUM, RANGE_LONG].find(r => distance >= RANGES[r].min && distance <= RANGES[r].max);
+        if (!range) {
+            return false;
+        }
         if (range > weapon.maximumRange) {
             return false;
         }
@@ -269,6 +302,11 @@ export class Character {
     getInteractions(character) {
         return [];
     }
+
+    move(x, y) {
+        this.x = x;
+        this.y = y;
+    }
 }
 
 export class PlayerCharacter extends Character {
@@ -286,7 +324,6 @@ export class PlayerCharacter extends Character {
         this.inventory.push(new Knife());
         this.inventory.push(new CanOfBeans());
         this.inventory.push(new Shotgun(true));
-        this.inventory.push(new Bow());
     }
 
     gainXp(xp) {
@@ -308,9 +345,14 @@ export class PlayerCharacter extends Character {
     }
 
     onAttack(target) {
-        if (this.isPC) {
-            target.opinionOfPC -= 20;
+        if (!target.isHostileTo(this)) {
+            this.game.characters.forEach(c => {
+                if (c.isNPC) {
+                    c.modifyOpinionOf(this, -2 * c.desires.attackProvokers);
+                }
+            });
         }
+        let opinion = target.modifyOpinionOf(this, -20);
     }
 
     onKill(target) {
@@ -322,11 +364,11 @@ export class NonPlayerCharacter extends Character {
     constructor(level, strength, quickness, cunning, guile, grit) {
         super(level, strength, quickness, cunning, guile, grit);
 
-        this.opinionOfPC = 0;
-
         this.desires = {
             gamble: 0,
-            travel: 0
+            travel: 0,
+            attackProvokers: 0,
+            defendBank: 0
         };
         this.winningStreak = 0;
         this.losingStreak = 0;
@@ -357,6 +399,28 @@ export class NonPlayerCharacter extends Character {
         }
 
         return useableWeapons.filter(w => !w.isMelee).sort((a, b) => b.rangeModifiers[range] - a.rangeModifiers[range])[0];
+    }
+
+    generateNewPathIfRequired(destX, destY) {
+        if (!this.path || !this.aStar || (this.aStar._toX !== destX && this.aStar._toY !== destY)) {
+            this.aStar = new ROT.Path.AStar(destX, destY, (x, y) => this.spaceIsValidPath(x, y));
+            this.path = [];
+            this.aStar.compute(this.x, this.y, (x, y) => {
+                this.path.push({x, y});
+            });
+            this.path.shift(); //remove the space you are already in
+        }
+    }
+
+    spaceIsValidPath(x, y) {
+        if (this.x === x && this.y === y) {
+            return true;
+        }
+        if (Math.abs(x - this.x) > MAX_PATHFINDING_RADIUS || Math.abs(y - this.y) > MAX_PATHFINDING_RADIUS) {
+            return false;
+        }
+
+        return !this.game.isSpaceBlocked(x, y);
     }
 
     takeTurn() {
@@ -394,7 +458,21 @@ export class NonPlayerCharacter extends Character {
                 }
             }
 
-            // here we would walk towards the nearest threat, or to the nearest threat's LOS if we have a range weapon equipped
+            let destination = threats[0];
+
+            this.generateNewPathIfRequired(destination.x, destination.y);
+            // here we would walk towards the nearest threat
+
+            if (this.game.isSpaceBlocked(this.path[0].x, this.path[0].y)) {
+                this.generateNewPathIfRequired(destination.x, destination.y);
+            }
+
+            if (!this.game.isSpaceBlocked(this.path[0].x, this.path[0].y)) {
+                let nextSpace = this.path.shift();
+                this.move(nextSpace.x, nextSpace.y);
+                return;
+            }
+
         } else {
             if (this.getCurrentWeapon() !== this.naturalWeapon) {
                 this.unequip();
@@ -456,6 +534,8 @@ export class Scoundrel extends NonPlayerCharacter {
         this.symbol = '@';
 
         this.cents = 2000;
+
+        this.desires.attackProvokers = 1;
 
     }
 
@@ -539,19 +619,44 @@ export class ShopKeep extends NonPlayerCharacter {
     }
 }
 
+export class Marshal extends NonPlayerCharacter {
+    constructor() {
+        super(
+            _.sample([1, 2, 3, 4]), // Level
+            _.sample([0, 1, 2, 2]), // Strength
+            _.sample([0, 1, 1, 2]), // Quickness
+            _.sample([0, 0, 1, 1]), // Cunning
+            _.sample([0, 0, 1, 2]), // Guile
+            _.sample([1, 2, 3, 4]), // Grit
+        );
+        this.name = `${_.sample(MALE_NAMES)} ${_.sample(LAST_NAMES)}`;
+        this.symbol = '@';
+
+        this.cents = 4000;
+
+        this.desires.attackProvokers = 5;
+
+        this.inventory.push(new Rifle(true));
+        this.inventory.push(new Revolver(true));
+        this.bullets = 120;
+
+    }
+}
+
 export class Banker extends NonPlayerCharacter {
     constructor(top, left, width, height) {
         super(
             _.sample([0, 0, 1, 2]), // Level
             _.sample([0, 1, 1, 2]), // Strength
             _.sample([0, 0, 1, 2]), // Quickness
-            _.sample([0, 0, 0, 1]), // Cunning
+            _.sample([1, 2, 3, 4]), // Cunning
             _.sample([0, 0, 0, 1]), // Guile
             _.sample([0, 0, 0, 1]), // Grit
         );
         this.name = `${_.sample(MALE_NAMES)} ${_.sample(LAST_NAMES)}`;
         this.symbol = '@';
         this.inventory.push(new Revolver(true));
+        this.inventory.push(new VaultKey());
         this.bullets = 12;
         this.shopTop = top;
         this.shopLeft = left;

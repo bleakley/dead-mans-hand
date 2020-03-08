@@ -3,6 +3,8 @@ export const GAME_WINDOW_HEIGHT = 45;
 export const SIDEBAR_WIDTH = 30;
 export const MESSAGE_LOG_HEIGHT = 10;
 
+export const MAX_PATHFINDING_RADIUS = 100;
+
 export function fromSeed(seed, max = 1, min = 0) {
 
     let temp = (seed * 9301 + 49297) % 233280;
@@ -90,11 +92,12 @@ RANGES[RANGE_CLOSE] = {
 };
 RANGES[RANGE_MEDIUM] = {
     min: 7,
-    max: 20,
+    max: 19,
     name: 'medium'
 };
 RANGES[RANGE_LONG] = {
-    min: 21,
+    min: 20,
+    max: 26,
     name: 'long'
 };
 
@@ -111,6 +114,7 @@ export const TILE_WOOD_DOOR = next();
 export const TILE_POKER_TABLE = next();
 export const TILE_BENCH = next();
 export const TILE_CROSS = next();
+export const TILE_VAULT_DOOR = next();
 
 export const TILES = {};
 TILES[TILE_DIRT_1] = {
@@ -198,15 +202,23 @@ TILES[TILE_BENCH] = {
     symbols: ['–'],
     fore: 'white',
     back: 'darkgoldenrod',
-    blocksMove: false,
-    blocksVision: true
+    blocksMove: true,
+    blocksVision: false
 };
 TILES[TILE_CROSS] = {
     name: 'cross',
     symbols: ['†'],
     fore: 'white',
     back: 'darkgoldenrod',
-    blocksMove: false,
+    blocksMove: true,
+    blocksVision: false
+};
+TILES[TILE_VAULT_DOOR] = {
+    name: 'vault door',
+    symbols: ['#'],
+    fore: 'white',
+    back: 'dimgray',
+    blocksMove: true,
     blocksVision: true
 };
 
