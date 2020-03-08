@@ -73,6 +73,12 @@ export class Character {
         if (other.profession.includes('Lakota') && this.profession.includes('Lakota')) {
             return 5;
         }
+        if (other.profession.includes('Lakota') && !this.profession.includes('Lakota')) {
+            return -5;
+        }
+        if (!other.profession.includes('Lakota') && this.profession.includes('Lakota')) {
+            return -5;
+        }
         return 0;
     }
 
@@ -348,7 +354,7 @@ export class Character {
 
 export class PlayerCharacter extends Character {
     constructor() {
-        super(0, 1, 0, 0, 0, 2);
+        super(0, 1, 0, 0, 0, 1);
         this.name = 'Rodney';
         this.cents = 2000;
         this.isPC = true;
@@ -386,7 +392,7 @@ export class PlayerCharacter extends Character {
     onAttack(target) {
         if (!target.isHostileTo(this)) {
             this.game.characters.forEach(c => {
-                if (c.isNPC) {
+                if (c.isNPC && c.getOpinionOf(target) >= 0) {
                     c.modifyOpinionOf(this, -2 * c.desires.attackProvokers);
                 }
             });
@@ -484,6 +490,9 @@ export class NonPlayerCharacter extends Character {
                 this.modifyOpinionOf(charactersInTheWay[0], -1);
                 this.say('Get out of my way!');
                 console.log(this.name + ' is blocking ' + charactersInTheWay[0].name);
+                this.aStar = null;
+                this.path = null;
+                return false;
             }
             this.generateNewPathIfRequired(x, y);
         }
@@ -577,6 +586,16 @@ export class NonPlayerCharacter extends Character {
 
         }
 
+        // Return to your post
+        if (this.desires.defendBank) {
+            let unmannedGuardPost = this.game.guardPosts.filter(p => this.spaceIsValidPath(p.x, p.y))[0];
+            if (unmannedGuardPost) {
+                if (this.walkPathIfPossible(unmannedGuardPost.x, unmannedGuardPost.y)) {
+                    return;
+                }
+            }
+        }
+
         // look for a game if he wants to gamble
         let nearestPokerGame = this.game.pokerGames.sort((a, b) => this.distanceBetween(a) - this.distanceBetween(b))[0];
         if (nearestPokerGame && !this.activePokerPlayerRole && this.desires.gamble > 0) {
@@ -664,6 +683,9 @@ export class Scoundrel extends NonPlayerCharacter {
         this.symbol = '@';
         this.color = _.sample(['purple', 'lawngreen', 'deeppink']);
         this.profession = 'Scoundrel';
+
+        this.inventory.push(_.sample([new Knife(), new Pistol(true), new Pistol(true), new Revolver(true)]));
+        this.bullets = 20;
 
         this.cents = 2000;
 
@@ -831,6 +853,7 @@ export class Marshal extends NonPlayerCharacter {
         this.cents = 4000;
 
         this.desires.attackProvokers = 5;
+        this.desires.defendBank = 5;
 
         this.inventory.push(new Rifle(true));
         this.inventory.push(new Revolver(true));
@@ -856,7 +879,7 @@ export class LakotaScout extends NonPlayerCharacter {
 
         this.cents = 0;
 
-        this.inventory.push(_.sample([new Pistol(), new Rifle(), new Bow()]));
+        this.inventory.push(_.sample([new Pistol(true), new Rifle(true), new Bow()]));
         this.inventory.push(new Knife());
         this.arrows = 20;
         this.bullets = 20;
@@ -881,7 +904,7 @@ export class LakotaWarrior extends NonPlayerCharacter {
 
         this.cents = 0;
 
-        this.inventory.push(new Rifle());
+        this.inventory.push(new Rifle(true));
         this.inventory.push(new Axe());
         this.bullets = 30;
 

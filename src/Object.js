@@ -1,4 +1,4 @@
-import { ItemPurchase, ItemSteal, ItemLoot, MoneyLoot, CashTake } from "./ObjectInteraction";
+import { ItemPurchase, ItemSteal, ItemLoot, MoneyLoot, CashTake, AmmoLoot } from "./ObjectInteraction";
 import { formatMoney } from "./Constants";
 
 export class Object {
@@ -48,6 +48,16 @@ export class Body extends Object {
         if (this.character.cents > 0) {
             interactions.push(new MoneyLoot(this))
         }
+        if (this.character.bullets > 0) {
+            interactions.push(new AmmoLoot(this, 'bullets'))
+        }
+        if (this.character.arrows > 0) {
+            interactions.push(new AmmoLoot(this, 'arrows'))
+        }
+        if (this.character.buckshot > 0) {
+            interactions.push(new AmmoLoot(this, 'buckshot'))
+        }
+
         return interactions;
     }
 }
