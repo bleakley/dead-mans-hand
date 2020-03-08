@@ -118,6 +118,7 @@ export class PokerStrategy {
     }
 
     chooseAction(gameState) {
+        console.log(gameState);
         return chooseRandom(this.sigma[getGameStateString(gameState)])
     }
 

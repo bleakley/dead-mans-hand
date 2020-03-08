@@ -30,6 +30,8 @@ export class PokerGame {
         this.players = [];
         this.playersWaitingToJoinHand = [];
         this.extraCard = null;
+
+        this.didActionHappenThisTurn = false;
     }
 
     getPot() {
