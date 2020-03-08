@@ -181,28 +181,28 @@ export class PokerGame {
 
         let smallBlindPlayer = this.getNextPlayer(this.dealer, true);
         if (smallBlindPlayer.character.cents < this.smallBlind) {
-            if (player.isDealer()) {
+            if (smallBlindPlayer.isDealer()) {
                 this.dealer.character.say('I don\'t have enough money.');
                 this.dealer = this.getNextPlayer(this.dealer, false);
             }
             else {
-                this.dealer.character.say(player.character.name + ', you don\'t have enough money.');
+                this.dealer.character.say(smallBlindPlayer.character.name + ', you don\'t have enough money.');
             }
             this.round = 0;
             this.removePlayer(smallBlindPlayer);
             return;
         }
         let bigBlindPlayer = this.getNextPlayer(smallBlindPlayer, true);
-        if (smallBlindPlayer.character.cents < this.smallBlind) {
-            if (player.isDealer()) {
+        if (bigBlindPlayer.character.cents < this.bigBlind) {
+            if (bigBlindPlayer.isDealer()) {
                 this.dealer.character.say('I don\'t have enough money.');
                 this.dealer = this.getNextPlayer(this.dealer, false);
             }
             else {
-                this.dealer.character.say(player.character.name + ', you don\'t have enough money.');
+                this.dealer.character.say(bigBlindPlayer.character.name + ', you don\'t have enough money.');
             }
             this.round = 0;
-            this.removePlayer(smallBlindPlayer);
+            this.removePlayer(bigBlindPlayer);
             return;
         }
         smallBlindPlayer.bet(this.smallBlind, false);
