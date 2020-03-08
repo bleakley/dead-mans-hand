@@ -29,6 +29,7 @@ export class PokerGame {
 
         this.players = [];
         this.playersWaitingToJoinHand = [];
+        this.extraCard = null;
     }
 
     getPot() {
@@ -156,6 +157,10 @@ export class PokerGame {
 
         this.players.forEach(player => {
             player.inCurrentHand = true;
+            if (player.extraCard) {
+                player.takeCard(player.extraCard);
+                player.extraCard = null;
+            }
             player.takeCard(this.deck.draw());
             player.takeCard(this.deck.draw());
         });
@@ -281,6 +286,11 @@ class Player {
         this.cardsMucked = false;
     }
 
+    getBestCard() {
+        let sortedHole = this.hole.sort( (c1, c2) => c2.value*4 + c2.suit - c1.value*4 - c1.suit);
+        return sortedHole[0]
+    }
+
     isDealer() {
         return this.game.dealer === this;
     }
@@ -398,6 +408,14 @@ class Player {
         this.game.waitingForActivePlayerAction = false;
     }
 
+    foldAndKeepBestCard() {
+        this.inCurrentHand = false;
+        this.character.say(`I fold.`);
+        this.hasTakenActionSinceLastRaise = true;
+        this.game.waitingForActivePlayerAction = false;
+        this.extraCard = this.getBestCard();
+    }
+
     check() {
         this.character.say(`Check.`);
         this.hasTakenActionSinceLastRaise = true;
@@ -429,6 +447,9 @@ class Player {
             this.game.winningHand = hand;
         }
         this.game.waitingForActivePlayerAction = false;
+        if (this.hole.length > 2) {
+            this.game.players.filter(p => p !== this).forEach(p => p.character.onCheated(this.character))
+        }
     }
 
     muckCards() {
