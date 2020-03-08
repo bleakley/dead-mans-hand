@@ -597,7 +597,8 @@ export class NonPlayerCharacter extends Character {
         }
 
         // look for a game if he wants to gamble
-        let nearestPokerGame = this.game.pokerGames.sort((a, b) => this.distanceBetween(a) - this.distanceBetween(b))[0];
+        let possiblePokerGames = this.game.pokerGames.filter(g => this.cents >= 2*g.bigBlind)
+        let nearestPokerGame = possiblePokerGames.sort((a, b) => this.distanceBetween(a) - this.distanceBetween(b))[0];
         if (nearestPokerGame && !this.activePokerPlayerRole && this.desires.gamble > 0) {
             if (this.distanceBetween(nearestPokerGame) === 1) {
                 this.join(nearestPokerGame);
@@ -621,6 +622,26 @@ export class NonPlayerCharacter extends Character {
         }
 
         // should we check here if a character wants to leave a poker game?
+
+        // If you want to play poker but don't have enough money, sell your stuff
+        if (!this.activePokerPlayerRole && this.desires.gamble > 0 && this.inventory.length > 0) {
+            let smallestBigBlind = Math.min(...this.game.pokerGames.map(g => g.bigBlind));
+            let inventoryValue = this.inventory.map(i => i.value).reduce((a, b) => a + b);
+            if (inventoryValue + this.cents >= 2*smallestBigBlind) {
+                let shopKeeps = this.game.characters.filter(c => c.profession == 'Shopkeeper');
+                if (shopKeeps) {
+                    let nearestShopKeep = shopKeeps.sort((a, b) => this.distanceBetween(a) - this.distanceBetween(b))[0];
+                    if (this.distanceBetween(nearestShopKeep) === 1) {
+                        let sellInteractions = nearestShopKeep.getInteractions(this).filter(i => i instanceof ItemSell);
+                        sellInteractions[0].onInteract(this);
+                        return;
+                    }
+                    if (this.walkPathIfPossible(nearestShopKeep.x, nearestShopKeep.y)) {
+                        return;
+                    }
+                }
+            }
+        }
 
         // check if the character wants to leave the map
         if (!this.activePokerPlayerRole && this.desires.travel > 10) {

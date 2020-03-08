@@ -229,6 +229,9 @@ export class View {
             }
         }
 
+        if (!this.game.player.activePokerPlayerRole) {
+            this.showPokerView = false;
+        }
         if (this.showInventory) {
             this.clearSidebar();
             this.drawInventory();
@@ -361,8 +364,8 @@ export class View {
                 let maxRaise = pokerRole.getMaxValidRaise();
                 this.tempBetValue = Math.max(minBet, this.tempBetValue);
                 this.tempBetValue = Math.min(maxBet, this.tempBetValue);
-                this.tempRaiseValue = Math.max(minBet, this.tempRaiseValue);
-                this.tempRaiseValue = Math.min(maxBet, this.tempRaiseValue);
+                this.tempRaiseValue = Math.max(minRaise, this.tempRaiseValue);
+                this.tempRaiseValue = Math.min(maxRaise, this.tempRaiseValue);
                 let canIncreaseBet = this.tempBetValue < maxBet;
                 let canDecreaseBet = this.tempBetValue > minBet;
                 let canIncreaseRaise = this.tempRaiseValue < maxRaise;
@@ -375,12 +378,12 @@ export class View {
                 }
                 if (pokerRole.canFold()) {
                     commands.push({
-                        key: 'F',
-                        description: 'fold'
-                    });
-                    commands.push({
                         key: 'Z',
                         description: 'fold and keep ' + formatCards([pokerRole.getBestCard()])
+                    });
+                    commands.push({
+                        key: 'F',
+                        description: 'fold'
                     });
                 }
                 if (pokerRole.canCheck()) {

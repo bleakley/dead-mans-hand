@@ -159,16 +159,53 @@ export class PokerGame {
 
         this.players.forEach(player => {
             player.inCurrentHand = true;
-            if (player.extraCard) {
-                player.takeCard(player.extraCard);
-                player.extraCard = null;
-            }
             player.takeCard(this.deck.draw());
             player.takeCard(this.deck.draw());
         });
+
+        // Check if any players are out of money
+        for (let player of this.players) {
+            if (player.character.cents == 0) {
+                if (player.isDealer()) {
+                    this.dealer.character.say('I don\'t have enough money.');
+                    this.dealer = this.getNextPlayer(this.dealer, false);
+                }
+                else {
+                    this.dealer.character.say(player.character.name + ', you don\'t have enough money.');
+                }
+                this.round = 0;
+                this.removePlayer(player);
+                return;
+            }
+        }
+
         let smallBlindPlayer = this.getNextPlayer(this.dealer, true);
-        smallBlindPlayer.bet(this.smallBlind, false);
+        if (smallBlindPlayer.character.cents < this.smallBlind) {
+            if (player.isDealer()) {
+                this.dealer.character.say('I don\'t have enough money.');
+                this.dealer = this.getNextPlayer(this.dealer, false);
+            }
+            else {
+                this.dealer.character.say(player.character.name + ', you don\'t have enough money.');
+            }
+            this.round = 0;
+            this.removePlayer(smallBlindPlayer);
+            return;
+        }
         let bigBlindPlayer = this.getNextPlayer(smallBlindPlayer, true);
+        if (smallBlindPlayer.character.cents < this.smallBlind) {
+            if (player.isDealer()) {
+                this.dealer.character.say('I don\'t have enough money.');
+                this.dealer = this.getNextPlayer(this.dealer, false);
+            }
+            else {
+                this.dealer.character.say(player.character.name + ', you don\'t have enough money.');
+            }
+            this.round = 0;
+            this.removePlayer(smallBlindPlayer);
+            return;
+        }
+        smallBlindPlayer.bet(this.smallBlind, false);
         bigBlindPlayer.bet(this.bigBlind, false);
         this.activePlayer = this.getNextPlayer(bigBlindPlayer, true);
         this.lastPlayerToBet = null;
@@ -289,7 +326,7 @@ class Player {
     }
 
     getBestCard() {
-        let sortedHole = this.hole.sort( (c1, c2) => c2.value*4 + c2.suit - c1.value*4 - c1.suit);
+        let sortedHole = this.hole.concat().sort( (c1, c2) => c2.value*4 + c2.suit - c1.value*4 - c1.suit);
         return sortedHole[0]
     }
 
@@ -318,8 +355,16 @@ class Player {
     }
 
     discardCards() {
-        this.game.discardPile = this.game.discardPile.concat(this.hole);
-        this.hole = [];
+        if (!this.extraCard) {
+            this.game.discardPile = this.game.discardPile.concat(this.hole);
+            this.hole = [];
+        }
+        else {
+            this.game.discardPile = this.game.discardPile.concat(this.hole.filter(c => c !== this.extraCard));
+            this.hole = [this.extraCard];
+            this.extraCard = null;
+        }
+
     }
 
     deal() {
@@ -341,17 +386,17 @@ class Player {
     }
 
     getMaxValidBet() {
-        let highestOtherStackInHand = this.game.players.filter(p => p.inCurrentHand && p !== this).reduce((prevMax, player) => Math.max(prevMax, player.character.cents), 0);
-        return Math.min(this.character.cents, highestOtherStackInHand);
+        let highestOtherStackInHand = this.game.players.filter(p => p.inCurrentHand && p !== this).reduce((prevMax, player) => Math.max(prevMax, player.character.cents - player.currentBet), 0);
+        return Math.min(this.character.cents - this.currentBet, highestOtherStackInHand);
     }
 
     getMinValidBet() {
-        return Math.min(this.game.bigBlind, this.character.cents);
+        return Math.min(this.game.bigBlind, this.character.cents - this.currentBet);
     }
 
     getMaxValidRaise() {
-        let highestOtherStackInHand = this.game.players.filter(p => p.inCurrentHand && p !== this).reduce((prevMax, player) => Math.max(prevMax, player.character.cents), 0);
-        return Math.min(this.character.cents - this.getCallAmount(), highestOtherStackInHand);
+        let highestOtherStackInHand = this.game.players.filter(p => p.inCurrentHand && p !== this).reduce((prevMax, player) => Math.max(prevMax, player.character.cents - player.currentBet - player.getCallAmount()), 0);
+        return Math.min(this.character.cents -this.currentBet - this.getCallAmount(), highestOtherStackInHand);
     }
 
     getMinValidRaise() {
@@ -382,7 +427,7 @@ class Player {
     }
 
     canReveal() {
-        return this.inCurrentHand && !this.cardsRevealed;
+        return this.inCurrentHand && !this.cardsRevealed && this.game.round == 5;
     }
 
     canCheck() {
@@ -390,15 +435,15 @@ class Player {
     }
 
     canBet() {
-        return this.canCheck();
+        return this.canCheck() && this.character.cents > this.currentBet;
     }
 
     canRaise() {
-        return this.canCall() && this.character.cents > this.getCallAmount();
+        return this.canCall() && this.character.cents - this.currentBet > this.getCallAmount();
     }
 
     canFold() {
-        return this.isActivePlayer() && this.inCurrentHand && this.game.round < 5 && this.currentBet < this.game.getHighestBet();
+        return this.isActivePlayer() && this.inCurrentHand && this.game.round < 5 && !this.isMatchingHighestBet() && !this.isAllIn();
     }
 
     canCall() {
@@ -463,6 +508,7 @@ class Player {
 
     muckAndCollect() {
         this.game.round = 6;
+        this.game.players.forEach(p => p.character.cents -= p.currentBet);
         this.cardsMucked = true;
         this.character.say('I win!');
         this.character.cents += this.game.getPot();
