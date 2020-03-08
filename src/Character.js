@@ -73,6 +73,12 @@ export class Character {
         if (other.profession.includes('Lakota') && this.profession.includes('Lakota')) {
             return 5;
         }
+        if (other.profession.includes('Lakota') && !this.profession.includes('Lakota')) {
+            return -5;
+        }
+        if (!other.profession.includes('Lakota') && this.profession.includes('Lakota')) {
+            return -5;
+        }
         return 0;
     }
 
@@ -386,7 +392,7 @@ export class PlayerCharacter extends Character {
     onAttack(target) {
         if (!target.isHostileTo(this)) {
             this.game.characters.forEach(c => {
-                if (c.isNPC) {
+                if (c.isNPC && c.getOpinionOf(target) >= 0) {
                     c.modifyOpinionOf(this, -2 * c.desires.attackProvokers);
                 }
             });

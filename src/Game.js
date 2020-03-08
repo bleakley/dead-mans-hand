@@ -1,5 +1,5 @@
 import { Map } from './Map'
-import { PlayerCharacter, Scoundrel, LakotaWarrior, LakotaScout } from './Character';
+import { PlayerCharacter, Scoundrel, LakotaWarrior, LakotaScout, Marshal } from './Character';
 import { TILES } from './Constants';
 import { PokerGame } from './PokerGame';
 
@@ -22,6 +22,9 @@ export class Game {
     }
 
     addCharacter(character, x, y) {
+        if (this.getCharacters(x, y).length) {
+            return;
+        }
         this.characters.push(character);
         character.x = x;
         character.y = y;
@@ -121,19 +124,104 @@ export class Game {
         return true;
     }
 
+    repopulateMap() {
+        let professionPopulations = {
+            /*Undertaker: {
+                min: 1,
+                max: 1,
+                current: 0,
+                frequency: 100
+            },
+            Banker: {
+                min: 1,
+                max: 1,
+                current: 0,
+                frequency: 100
+            },
+            Shopkeeper: {
+                min: 1,
+                max: 1,
+                current: 0,
+                frequency: 100
+            },*/
+            'US Marshal': {
+                min: 2,
+                max: 2,
+                current: 0,
+                class: Marshal,
+                frequency: 75,
+                followers: []
+            },
+            /*Priest: {
+                min: 1,
+                max: 1,
+                current: 0,
+                frequency: 90
+            },*/
+            Scoundrel: {
+                min: 5,
+                max: 10,
+                current: 0,
+                class: Scoundrel,
+                frequency: 35,
+                followers: []
+            },
+            'Lakota Warrior': {
+                min: 0,
+                max: 1,
+                current: 0,
+                frequency: 5,
+                class: LakotaWarrior,
+                followers: [LakotaScout, LakotaScout]
+            },
+            'Lakota Scout': {
+                min: 0,
+                max: 4,
+                current: 0,
+                frequency: 10,
+                class: LakotaScout,
+                followers: [LakotaScout]
+            }
+        };
+
+        this.characters.forEach(c => professionPopulations[c.profession] && professionPopulations[c.profession].current++);
+
+        let spawn = name => {
+            let encounter = professionPopulations[name];
+            let x = _.sample([-25, 25]);
+            let y = _.sample([-25, 25]);
+            this.addCharacter(new encounter.class(), x, y);
+            let followers = encounter.followers;
+            if (followers.length >= 2) {
+                this.addCharacter(new followers[1](), x + 2, y);
+            }
+            if (followers.length >= 1) {
+                this.addCharacter(new followers[0](), x - 2, y);
+            }
+        }
+
+        for (let profession of Object.keys(professionPopulations)) {
+            let population = professionPopulations[profession];
+            if (population.current < population.min) {
+                spawn(profession);
+                return;
+            }
+        }
+
+        for (let profession of Object.keys(professionPopulations)) {
+            let population = professionPopulations[profession];
+            if (population.current < population.max && _.random(1, 100) <= population.frequency) {
+                spawn(profession);
+                return;
+            }
+        }
+    }
+
     playTurn() {
         this.turn++;
 
-        if (this.turn % 100 === 0) {
-            if (_.random(0, 1) === 1) {
-                this.addCharacter(new Scoundrel(), _.sample([-25, 25]), _.sample([-25, 25]));
-            } else if (_.random(0, 1) === 1) {
-                let x = _.sample([-25, 25]);
-                let y = _.sample([-25, 25]);
-                this.addCharacter(new LakotaWarrior(), x, y);
-                this.addCharacter(new LakotaScout(), x + 2, y);
-                this.addCharacter(new LakotaScout(), x - 2, y);
-            }
+        if (this.turn % 50 === 0) {
+            this.repopulateMap();
         }
 
         this.pokerGames.forEach(g => {
