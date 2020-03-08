@@ -1,3 +1,8 @@
+import { analyzeHand } from "./PokerUtils";
+import { CRM } from "./CRM"
+
+let myCRM = new CRM();
+
 function chooseRandom(options) {
     let sum = 0;
     for (let option of options) {
@@ -72,7 +77,30 @@ export class PokerStrategy {
         if (pokerPlayerRole.game.round === 5 && !pokerPlayerRole.cardsRevealed && !pokerPlayerRole.cardsMucked) {
             return pokerPlayerRole.revealCards();
         }
+        console.log(this.getGameState(pokerPlayerRole))
         this.getBucketStrategy(pokerPlayerRole).play(pokerPlayerRole);
+    }
+
+    getGameState(pokerPlayerRole) {
+        let gameState = {}
+        let allowedActions = {}
+        allowedActions.canCall = pokerPlayerRole.canCall();
+        allowedActions.canBet = pokerPlayerRole.canBet();
+        allowedActions.canCheck = pokerPlayerRole.canCheck();
+        allowedActions.canRaise = pokerPlayerRole.canRaise();
+        allowedActions.canFold = pokerPlayerRole.canFold();
+        
+        // Hand strength (0-2)
+        gameState.handStrength = Math.min(pokerPlayerRole.bestHand().comboRank, 2);
+
+        // Community hand strength (0-2), 2 in preflop
+        let bestCommunityHand = analyzeHand([], pokerPlayerRole.game.communityCards);
+        gameState.communityHandStrength = Math.min(bestCommunityHand.comboRank, 2)
+
+        // Round (1-5)
+        gameState.round = pokerPlayerRole.game.round;
+
+        return {gameState: gameState, allowedActions: allowedActions}
     }
 
     getBucketStrategy(pokerPlayerRole) {
