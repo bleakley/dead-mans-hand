@@ -1,7 +1,8 @@
-import { MALE_NAMES, LAST_NAMES, RANGE_POINT_BLANK, RANGE_CLOSE, RANGE_MEDIUM, RANGE_LONG, RANGES, XP_REQUIREMENTS } from "./Constants";
+import { MALE_NAMES, LAST_NAMES, RANGE_POINT_BLANK, RANGE_CLOSE, RANGE_MEDIUM, RANGE_LONG, RANGES, XP_REQUIREMENTS, MAX_PATHFINDING_RADIUS } from "./Constants";
 import { Fist, Revolver, Knife, CanOfBeans, Shotgun, VaultKey, Rifle } from "./Item";
 import { Body, ShopItem, Cash } from "./Object";
 import { ItemSell, MoneyWithdrawl, MoneyDeposit } from "./CharacterInteraction";
+import * as ROT from 'rot-js';
 
 let characterCounter = 0;
 let nextCharacterId = () => characterCounter++;
@@ -188,6 +189,9 @@ export class Character {
         let weapon = this.getCurrentWeapon();
         let distance = this.distanceBetween(target);
         let range = [RANGE_POINT_BLANK, RANGE_CLOSE, RANGE_MEDIUM, RANGE_LONG].find(r => distance >= RANGES[r].min && distance <= RANGES[r].max);
+        if (!range) {
+            return false;
+        }
         if (range > weapon.maximumRange) {
             return false;
         }
@@ -295,6 +299,11 @@ export class Character {
     getInteractions(character) {
         return [];
     }
+
+    move(x, y) {
+        this.x = x;
+        this.y = y;
+    }
 }
 
 export class PlayerCharacter extends Character {
@@ -389,6 +398,28 @@ export class NonPlayerCharacter extends Character {
         return useableWeapons.filter(w => !w.isMelee).sort((a, b) => b.rangeModifiers[range] - a.rangeModifiers[range])[0];
     }
 
+    generateNewPathIfRequired(destX, destY) {
+        if (!this.path || !this.aStar || (this.aStar._toX !== destX && this.aStar._toY !== destY)) {
+            this.aStar = new ROT.Path.AStar(destX, destY, (x, y) => this.spaceIsValidPath(x, y));
+            this.path = [];
+            this.aStar.compute(this.x, this.y, (x, y) => {
+                this.path.push({x, y});
+            });
+            this.path.shift(); //remove the space you are already in
+        }
+    }
+
+    spaceIsValidPath(x, y) {
+        if (this.x === x && this.y === y) {
+            return true;
+        }
+        if (Math.abs(x - this.x) > MAX_PATHFINDING_RADIUS || Math.abs(y - this.y) > MAX_PATHFINDING_RADIUS) {
+            return false;
+        }
+
+        return !this.game.isSpaceBlocked(x, y);
+    }
+
     takeTurn() {
         this.startTurn();
 
@@ -424,7 +455,21 @@ export class NonPlayerCharacter extends Character {
                 }
             }
 
-            // here we would walk towards the nearest threat, or to the nearest threat's LOS if we have a range weapon equipped
+            let destination = threats[0];
+
+            this.generateNewPathIfRequired(destination.x, destination.y);
+            // here we would walk towards the nearest threat
+
+            if (this.game.isSpaceBlocked(this.path[0].x, this.path[0].y)) {
+                this.generateNewPathIfRequired(destination.x, destination.y);
+            }
+
+            if (!this.game.isSpaceBlocked(this.path[0].x, this.path[0].y)) {
+                let nextSpace = this.path.shift();
+                this.move(nextSpace.x, nextSpace.y);
+                return;
+            }
+
         } else {
             if (this.getCurrentWeapon() !== this.naturalWeapon) {
                 this.unequip();

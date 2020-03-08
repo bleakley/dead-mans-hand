@@ -3,6 +3,8 @@ export const GAME_WINDOW_HEIGHT = 45;
 export const SIDEBAR_WIDTH = 30;
 export const MESSAGE_LOG_HEIGHT = 10;
 
+export const MAX_PATHFINDING_RADIUS = 100;
+
 export function fromSeed(seed, max = 1, min = 0) {
 
     let temp = (seed * 9301 + 49297) % 233280;
@@ -90,11 +92,12 @@ RANGES[RANGE_CLOSE] = {
 };
 RANGES[RANGE_MEDIUM] = {
     min: 7,
-    max: 20,
+    max: 19,
     name: 'medium'
 };
 RANGES[RANGE_LONG] = {
-    min: 21,
+    min: 20,
+    max: 26,
     name: 'long'
 };
 
