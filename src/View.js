@@ -576,7 +576,7 @@ export class View {
 
         let colorString = ''
         console.log(player)
-        if (player.isActivePlayer()) {
+        if (player.isActivePlayer() && player.game.round != 6 && player.game.round != 0) {
             colorString = '%c{white}';
         }
             

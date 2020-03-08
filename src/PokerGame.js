@@ -103,11 +103,11 @@ export class PokerGame {
         }
 
         if (this.players.filter(p => p.inCurrentHand).length == 1 && !this.players.filter(p => p.inCurrentHand)[0].cardsMucked && this.round > 0) {
-            this.dividePot();
-            this.players.filter(p => p.inCurrentHand)[0].muckCards();
+            this.players.filter(p => p.inCurrentHand)[0].muckAndCollect();
             this.waitingForActivePlayerAction = false;
+            this.waitingForDealerAction = false;
         }
-        else if (this.allPlayersHaveActed()) {
+        else if (this.allPlayersHaveActed() || (this.players.filter(p => p.inCurrentHand).length == 1 && this.round > 0)) {
             if (this.round === 6) {
                 this.cleanUp();
                 this.dealer = this.getNextPlayer(this.dealer, false);
@@ -167,9 +167,9 @@ export class PokerGame {
             player.takeCard(this.deck.draw());
         });
         let smallBlindPlayer = this.getNextPlayer(this.dealer, true);
-        smallBlindPlayer.bet(this.smallBlind);
+        smallBlindPlayer.bet(this.smallBlind, false);
         let bigBlindPlayer = this.getNextPlayer(smallBlindPlayer, true);
-        bigBlindPlayer.bet(this.bigBlind);
+        bigBlindPlayer.bet(this.bigBlind, false);
         this.activePlayer = this.getNextPlayer(bigBlindPlayer, true);
         this.lastPlayerToBet = null;
         this.resetHasTakenActionSinceLastRaise();
@@ -358,10 +358,12 @@ class Player {
         return Math.min(this.getCallAmount(), this.character.cents - this.getCallAmount());
     }
 
-    bet(amount) {
+    bet(amount, speak=true) {
         this.currentBet += amount;
         this.game.lastPlayerToBet = this;
-        this.character.say(`I bet ${formatMoney(amount)}.`);
+        if (speak) {
+            this.character.say(`I bet ${formatMoney(amount)}.`);
+        }
         this.game.resetHasTakenActionSinceLastRaise();
         this.hasTakenActionSinceLastRaise = true;
         this.game.waitingForActivePlayerAction = false;
@@ -457,6 +459,13 @@ class Player {
     muckCards() {
         this.cardsMucked = true;
         this.character.say(`Nothin'.`);
+    }
+
+    muckAndCollect() {
+        this.game.round = 6;
+        this.cardsMucked = true;
+        this.character.say('I win!');
+        this.character.cents += this.game.getPot();
     }
 }
 
