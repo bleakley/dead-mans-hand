@@ -1,136 +1,135 @@
 import { analyzeHand } from "./PokerUtils";
-import { Strategy } from "./CRM"
 
-let myStrategy = new Strategy();
+let ACTIONS = [];
+ACTIONS.push(['call', 'raise', 'fold', 'fold-and-keep']);
+ACTIONS.push(['call', 'fold', 'fold-and-keep']);
+ACTIONS.push(['fold', 'fold-and-keep']);
+ACTIONS.push(['bet', 'check']);
 
 function chooseRandom(options) {
     let sum = 0;
-    for (let option of options) {
-        sum += option.weight;
+    for (let option in options) {
+        sum += options[option];
     }
     let value = Math.random()*sum;
     let cumulativeValue = 0;
-    for (let option of options) {
-        if (value > cumulativeValue && value < cumulativeValue + option.weight) {
-            return option.action;
+    for (let option in options) {
+        if (value > cumulativeValue && value < cumulativeValue + options[option]) {
+            return option;
         }
-        cumulativeValue += option.weight;
+        cumulativeValue += options[option];
     }
+    throw "No option chosen"; 
 }
 
-class BucketStrategy {
-    constructor(raiseProbability, callProbability, cheatProbability, betProbability) {
-        this.raiseProbability = raiseProbability;
-        this.callProbability = callProbability;
-        this.betProbability = betProbability;
-        this.cheatProbability = cheatProbability;
+function getGameState(pokerPlayerRole) {
+    let gameState = {actions: []}
+    if (pokerPlayerRole.canCall()) {
+        gameState.actions.push('call');
     }
+    if (pokerPlayerRole.canBet()) {
+        gameState.actions.push('bet');
+    }
+    if (pokerPlayerRole.canCheck()) {
+        gameState.actions.push('check');
+    }
+    if (pokerPlayerRole.canRaise()) {
+        gameState.actions.push('raise');
+    }
+    if (pokerPlayerRole.canFold()) {
+        gameState.actions.push('fold');
+        gameState.actions.push('fold-and-keep');
+    }
+    
+    // Hand strength (0-2)
+    gameState.handStrength = Math.min(pokerPlayerRole.bestHand().comboRank, 2);
 
-    play(pokerPlayerRole) {
-        if (pokerPlayerRole.canCall()) {
-            if (pokerPlayerRole.canBet()) {
-                let raise = () => {pokerPlayerRole.raise(pokerPlayerRole.getMinValidRaise())};
-                let call = () => {pokerPlayerRole.call()};
-                let fold = () => {pokerPlayerRole.fold()};
-                let cheat = () => {pokerPlayerRole.foldAndKeepBestCard()};
-                let options = [{action: raise, weight: this.raiseProbability}, 
-                                {action: call, weight: this.callProbability},
-                                {action: cheat, weight: this.cheatProbability},
-                                {action: fold, weight: 1 -  this.raiseProbability - this.callProbability - this.cheatProbability}]
-                chooseRandom(options)()
-            }
-            else {
-                let call = () => {pokerPlayerRole.call()}
-                let fold = () => {pokerPlayerRole.fold()}
-                let cheat = () => {pokerPlayerRole.foldAndKeepBestCard()};
-                let options = [ {action: call, weight: this.callProbability},
-                    {action: cheat, weight: this.cheatProbability},
-                    {action: fold, weight: 1 -  this.raiseProbability - this.callProbability - this.cheatProbability}]
-                chooseRandom(options)()
-            }
-        }
-        else if (pokerPlayerRole.canCheck()) {
-            if (pokerPlayerRole.canBet()) {
-                let bet = () => {pokerPlayerRole.bet(pokerPlayerRole.getMinValidBet())};
-                let check = () => {pokerPlayerRole.check()}
-                let options = [{action: bet, weight: this.betProbability}, 
-                                {action: check, weight: 1 - this.betProbability}]
-                chooseRandom(options)()
-            }
-            else {
-                pokerPlayerRole.check();
-            }   
-        }
-        else {
+    // Community hand strength (0-2), 2 in preflop
+    let bestCommunityHand = analyzeHand([], pokerPlayerRole.game.communityCards);
+    gameState.communityHandStrength = Math.min(bestCommunityHand.comboRank, 2)
+
+    // Round (1-5)
+    gameState.round = pokerPlayerRole.game.round;
+
+    return gameState;
+}
+
+function getGameStateString(gameState) {
+    let str = '';
+    let props = Object.keys(gameState).sort()
+    for (let prop of props) {
+        str += gameState[prop].toString() + ',';
+    }
+    return str;
+}
+
+function performAction(pokerPlayerRole, action) {
+    switch (action) {
+        case 'bet':
+            pokerPlayerRole.bet(pokerPlayerRole.getMinValidBet());
+            break;
+        case 'check':
+            pokerPlayerRole.check();
+            break;
+        case 'raise':
+            pokerPlayerRole.raise(pokerPlayerRole.getMinValidRaise());
+            break;
+        case 'fold':
             pokerPlayerRole.fold();
-        }
+            break;
+        case 'fold-and-keep':
+            pokerPlayerRole.foldAndKeepBestCard();
+            break;
+        case 'call':
+            pokerPlayerRole.call();
+            break;
+        default:
+            throw "Unknown action " + action;
     }
 }
 
 export class PokerStrategy {
-    constructor(aggressiveness, cheatiness) {
-        this.aggressiveness = aggressiveness;
-        this.cheatiness = cheatiness;
+    constructor () {
+        this.sigma = [];
+        let gameState = {};
+        for(gameState.handStrength = 0; gameState.handStrength < 3; gameState.handStrength++) {
+            for(gameState.communityHandStrength = 0; gameState.communityHandStrength < 3; gameState.communityHandStrength++) {
+                for(gameState.round = 1; gameState.round < 5; gameState.round++) {
+                    if (gameState.round > 1 || gameState.communityHandStrength == 2) {
+                        for (gameState.actions of ACTIONS) {
+                            let actionProbabilities = {}
+                            for (let action of gameState.actions) {
+                                actionProbabilities[action] = 1./gameState.actions.length;
+                            }
+                            this.setProbabilities(gameState, actionProbabilities);                         
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    setProbabilities(gameState, actionProbabilities) {
+        this.sigma[getGameStateString(gameState)] = actionProbabilities;
+    }
+
+    chooseAction(gameState) {
+        return chooseRandom(this.sigma[getGameStateString(gameState)])
     }
 
     play(pokerPlayerRole) {
         if (pokerPlayerRole.game.round === 5 && !pokerPlayerRole.cardsRevealed && !pokerPlayerRole.cardsMucked) {
             return pokerPlayerRole.revealCards();
         }
-        console.log(this.getGameState(pokerPlayerRole))
-        this.getBucketStrategy(pokerPlayerRole).play(pokerPlayerRole);
-    }
-
-    getGameState(pokerPlayerRole) {
-        let gameState = {}
-        let allowedActions = {}
-        allowedActions.canCall = pokerPlayerRole.canCall();
-        allowedActions.canBet = pokerPlayerRole.canBet();
-        allowedActions.canCheck = pokerPlayerRole.canCheck();
-        allowedActions.canRaise = pokerPlayerRole.canRaise();
-        allowedActions.canFold = pokerPlayerRole.canFold();
-        
-        // Hand strength (0-2)
-        gameState.handStrength = Math.min(pokerPlayerRole.bestHand().comboRank, 2);
-
-        // Community hand strength (0-2), 2 in preflop
-        let bestCommunityHand = analyzeHand([], pokerPlayerRole.game.communityCards);
-        gameState.communityHandStrength = Math.min(bestCommunityHand.comboRank, 2)
-
-        // Round (1-5)
-        gameState.round = pokerPlayerRole.game.round;
-
-        return {gameState: gameState, allowedActions: allowedActions}
-    }
-
-    getBucketStrategy(pokerPlayerRole) {
-        // A pair
-        if (pokerPlayerRole.hole[0].value == pokerPlayerRole.hole[1].value) {
-            if (this.isFaceCard(pokerPlayerRole.hole[0])) {
-                return new BucketStrategy(this.aggressiveness*0.5, 0.4, this.cheatiness*0.1, this.aggressiveness*0.5)
-            }
-            else {   
-                return new BucketStrategy(this.aggressiveness*0.3, 0.4, this.cheatiness*0.1, this.aggressiveness*0.3)
-            }
+        let gameState = getGameState(pokerPlayerRole);
+        let action = null;
+        if (Object.keys(gameState.actions).length == 1) {
+            action = gameState.actions[0];
         }
-
-        // One or more face cards
-        else if (this.isFaceCard(pokerPlayerRole.hole[0]) || this.isFaceCard(pokerPlayerRole.hole[1])) {
-            return new BucketStrategy(this.aggressiveness*0.2, 0.3, this.cheatiness*0.1, this.aggressiveness*0.2)
-        }
-
-        // Suited cards
-        else if (pokerPlayerRole.hole[0].suit == pokerPlayerRole.hole[1].suit) {
-            return new BucketStrategy(this.aggressiveness*0.1, 0.2, this.cheatiness*0.1, this.aggressiveness*0.1)
-        }
-
-        // Everything else
         else {
-            return new BucketStrategy(this.aggressiveness*0.05, 0.1, this.cheatiness*0.1, this.aggressiveness*0.05)
+            action = this.chooseAction(gameState);
         }
+        performAction(pokerPlayerRole, action);
     }
 
-    isFaceCard(card) {
-        return card.value > 10;
-    }
 }

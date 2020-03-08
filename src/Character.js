@@ -51,9 +51,7 @@ export class Character {
         this.utterance = '';
         this.activePokerPlayerRole = null;
 
-        let possibleStrategyAggressiveness = [0.5, 0.75, 1];
-        let possibleStrategyCheatiness = [0.5, 0.75, 1];
-        this.pokerStrategy = new PokerStrategy(_.sample(possibleStrategyAggressiveness), _.sample(possibleStrategyCheatiness));
+        this.pokerStrategy = new PokerStrategy();
     }
 
     onGameStart() {
