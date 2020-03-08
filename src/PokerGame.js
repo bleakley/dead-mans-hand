@@ -180,7 +180,7 @@ export class PokerGame {
         }
 
         let smallBlindPlayer = this.getNextPlayer(this.dealer, true);
-        if (smallBlindPlayer.getMaxValidBet < this.smallBlind) {
+        if (smallBlindPlayer.character.cents < this.smallBlind) {
             if (player.isDealer()) {
                 this.dealer.character.say('I don\'t have enough money.');
                 this.dealer = this.getNextPlayer(this.dealer, false);
@@ -193,7 +193,7 @@ export class PokerGame {
             return;
         }
         let bigBlindPlayer = this.getNextPlayer(smallBlindPlayer, true);
-        if (smallBlindPlayer.getMaxValidBet < this.smallBlind) {
+        if (smallBlindPlayer.character.cents < this.smallBlind) {
             if (player.isDealer()) {
                 this.dealer.character.say('I don\'t have enough money.');
                 this.dealer = this.getNextPlayer(this.dealer, false);
@@ -386,16 +386,16 @@ class Player {
     }
 
     getMaxValidBet() {
-        let highestOtherStackInHand = this.game.players.filter(p => p.inCurrentHand && p !== this).reduce((prevMax, player) => Math.max(prevMax, player.character.cents), 0);
+        let highestOtherStackInHand = this.game.players.filter(p => p.inCurrentHand && p !== this).reduce((prevMax, player) => Math.max(prevMax, player.character.cents - player.currentBet), 0);
         return Math.min(this.character.cents - this.currentBet, highestOtherStackInHand);
     }
 
     getMinValidBet() {
-        return Math.min(this.game.bigBlind, this.character.cents);
+        return Math.min(this.game.bigBlind, this.character.cents - this.currentBet);
     }
 
     getMaxValidRaise() {
-        let highestOtherStackInHand = this.game.players.filter(p => p.inCurrentHand && p !== this).reduce((prevMax, player) => Math.max(prevMax, player.character.cents), 0);
+        let highestOtherStackInHand = this.game.players.filter(p => p.inCurrentHand && p !== this).reduce((prevMax, player) => Math.max(prevMax, player.character.cents - player.currentBet - player.getCallAmount()), 0);
         return Math.min(this.character.cents -this.currentBet - this.getCallAmount(), highestOtherStackInHand);
     }
 
