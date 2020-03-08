@@ -1,5 +1,5 @@
-import { MALE_NAMES, LAST_NAMES, RANGE_POINT_BLANK, RANGE_CLOSE, RANGE_MEDIUM, RANGE_LONG, RANGES, XP_REQUIREMENTS, MAX_PATHFINDING_RADIUS } from "./Constants";
-import { Fist, Revolver, Knife, CanOfBeans, Shotgun, VaultKey, Rifle } from "./Item";
+import { MALE_NAMES, LAST_NAMES, LAKOTA_MALE_NAMES, RANGE_POINT_BLANK, RANGE_CLOSE, RANGE_MEDIUM, RANGE_LONG, RANGES, XP_REQUIREMENTS, MAX_PATHFINDING_RADIUS, TILE_GRAVE } from "./Constants";
+import { Fist, Revolver, Axe, Pistol, Bow, Knife, CanOfBeans, Shotgun, VaultKey, Rifle, Shovel } from "./Item";
 import { Body, ShopItem, Cash } from "./Object";
 import { ItemSell, MoneyWithdrawl, MoneyDeposit } from "./CharacterInteraction";
 import { BasicPokerStrategy } from "./PokerStrategy"
@@ -25,6 +25,7 @@ export class Character {
         this.buckshot = 0;
         this.arrows = 0;
         this.inventory = [];
+        this.bodyCarried = null;
         this.equippedWeapon = null;
         this.naturalWeapon = new Fist();
         this.initiative = 0;
@@ -59,12 +60,28 @@ export class Character {
     onGameStart() {
     }
 
+    getDefaultOpinionOf(other) {
+        if (this.profession.includes('US Marshal') && other.profession.includes('Lakota')) {
+            return -10;
+        }
+        if (other.profession.includes('US Marshal') && this.profession.includes('Lakota')) {
+            return -10;
+        }
+        if (other.profession.includes('US Marshal') && this.profession.includes('US Marshal')) {
+            return 5;
+        }
+        if (other.profession.includes('Lakota') && this.profession.includes('Lakota')) {
+            return 5;
+        }
+        return 0;
+    }
+
     getOpinionOf(other) {
         if (!opinionMap.hasOwnProperty(this.id)) {
             opinionMap[this.id] = [];
             opinionMap[this.id][other.id] = 0;
         } else if (!opinionMap[this.id].hasOwnProperty(other.id)) {
-            opinionMap[this.id][other.id] = 0;
+            opinionMap[this.id][other.id] = this.getDefaultOpinionOf(other);
         }
         return opinionMap[this.id][other.id];
     }
@@ -84,7 +101,7 @@ export class Character {
     getDisplayChar() {
         return {
             symbol: this.symbol,
-            color: 'white'
+            color: this.color
         };
     }
 
@@ -311,6 +328,7 @@ export class Character {
     }
 
     move(x, y) {
+        this.previousSpace = { x: this.x, y: this.y };
         this.x = x;
         this.y = y;
     }
@@ -330,7 +348,7 @@ export class Character {
 
 export class PlayerCharacter extends Character {
     constructor() {
-        super(0, 0, 0, 0, 0, 0);
+        super(0, 1, 0, 0, 0, 2);
         this.name = 'Rodney';
         this.cents = 2000;
         this.isPC = true;
@@ -338,6 +356,8 @@ export class PlayerCharacter extends Character {
         this.bullets = 50;
         this.buckshot = 20;
         this.arrows = 20;
+
+        this.profession = '(You)';
 
         this.inventory.push(new Revolver(true));
         this.inventory.push(new Knife());
@@ -388,11 +408,14 @@ export class NonPlayerCharacter extends Character {
     constructor(level, strength, quickness, cunning, guile, grit) {
         super(level, strength, quickness, cunning, guile, grit);
 
+        this.profession = 'NPC';
+
         this.desires = {
             gamble: 0,
             travel: 0,
             attackProvokers: 0,
-            defendBank: 0
+            defendBank: 0,
+            buryBodies: 0
         };
         this.winningStreak = 0;
         this.losingStreak = 0;
@@ -430,7 +453,7 @@ export class NonPlayerCharacter extends Character {
             this.aStar = new ROT.Path.AStar(destX, destY, (x, y) => this.spaceIsValidPath(x, y));
             this.path = [];
             this.aStar.compute(this.x, this.y, (x, y) => {
-                this.path.push({x, y});
+                this.path.push({ x, y });
             });
             this.path.shift(); //remove the space you are already in
         }
@@ -524,7 +547,35 @@ export class NonPlayerCharacter extends Character {
             }
         }
 
-        // At this point the NPC is not in combat, and is not worried about any immeadiate threats;
+        // At this point the NPC is not in combat, and is not worried about any immediate threats;
+
+        // Bury bodies if he's into that sort of thing
+        if (this.desires.buryBodies > 0) {
+            if (!this.nextGravePlot) {
+                this.nextGravePlot = this.getEmptyGravePlot();
+            }
+            if (this.bodyCarried) {
+                if (this.distanceBetween({ x: this.nextGravePlot[0], y: this.nextGravePlot[1] }) <= 1) {
+                    this.buryBody(this.nextGravePlot[0], this.nextGravePlot[1]);
+                    return;
+                }
+                if (this.walkPathIfPossible(this.nextGravePlot[0], this.nextGravePlot[1])) {
+                    return;
+                }
+            }
+            let closestUnburiedBody = this.game.objects.filter(o => o.isBody).sort((a, b) => this.distanceBetween(a) - this.distanceBetween(b))[0];
+            if (closestUnburiedBody) {
+                if (this.distanceBetween(closestUnburiedBody) <= 1) {
+                    this.bodyCarried = closestUnburiedBody;
+                    _.remove(this.game.objects, closestUnburiedBody);
+                    return;
+                }
+                if (this.walkPathIfPossible(closestUnburiedBody.x, closestUnburiedBody.y)) {
+                    return;
+                }
+            }
+
+        }
 
         // look for a game if he wants to gamble
         let nearestPokerGame = this.game.pokerGames.sort((a, b) => this.distanceBetween(a) - this.distanceBetween(b))[0];
@@ -590,7 +641,7 @@ export class NonPlayerCharacter extends Character {
 
     onKill(target) {
     }
-    
+
     onCatchesCheater(target) {
         this.say(target.name + ", I think you're cheating.");
         this.modifyOpinionOf(target, -5);
@@ -611,6 +662,8 @@ export class Scoundrel extends NonPlayerCharacter {
         );
         this.name = `${_.sample(MALE_NAMES)} ${_.sample(LAST_NAMES)}`;
         this.symbol = '@';
+        this.color = _.sample(['purple', 'lawngreen', 'deeppink']);
+        this.profession = 'Scoundrel';
 
         this.cents = 2000;
 
@@ -633,9 +686,68 @@ export class Priest extends NonPlayerCharacter {
         );
         this.name = `${_.sample(MALE_NAMES)} ${_.sample(LAST_NAMES)}`;
         this.symbol = '@';
+        this.color = 'black';
+        this.profession = 'Priest';
 
         this.cents = 2000;
 
+    }
+}
+
+export class Undertaker extends NonPlayerCharacter {
+    constructor(top, left, width, height) {
+        super(
+            _.sample([0, 0, 1, 2]), // Level
+            _.sample([1, 1, 2, 3]), // Strength
+            _.sample([0, 0, 0, 1]), // Quickness
+            _.sample([0, 0, 0, 1]), // Cunning
+            _.sample([0, 0, 0, 1]), // Guile
+            _.sample([1, 2, 3, 4]), // Grit
+        );
+        this.name = `${_.sample(MALE_NAMES)} ${_.sample(LAST_NAMES)}`;
+        this.symbol = '@';
+        this.color = 'black';
+        this.profession = 'Undertaker';
+
+        this.cents = 150;
+
+        this.inventory.push(new Shovel(true));
+
+        this.cemetaryTop = top;
+        this.cemetaryLeft = left;
+        this.cemetaryWidth = width;
+        this.cemetaryHeight = height;
+
+        this.desires.buryBodies = 1;
+
+        this.nextGravePlot = null;
+
+    }
+
+    getEmptyGravePlot() {
+        let spaces = [];
+        for (let x = this.cemetaryLeft + 1; x < this.cemetaryLeft + this.cemetaryWidth; x++) {
+            for (let y = this.cemetaryTop + 3; y < this.cemetaryTop + this.cemetaryHeight; y += 2) {
+                if (x != this.cemetaryLeft + this.cemetaryWidth / 2) {
+                    if (this.game.spaceIsPassable(x, y)) {
+                        spaces.push([x, y]);
+                    }
+                }
+            }
+        }
+
+        if (spaces.length > 0) {
+            return _.sample(spaces);
+        }
+        else {
+            return null;
+        }
+    }
+
+    buryBody(x, y) {
+        this.bodyCarried = null;
+        this.game.map.setTile(x, y, TILE_GRAVE);
+        this.nextGravePlot = this.getEmptyGravePlot();
     }
 }
 
@@ -651,6 +763,8 @@ export class ShopKeep extends NonPlayerCharacter {
         );
         this.name = `${_.sample(MALE_NAMES)} ${_.sample(LAST_NAMES)}`;
         this.symbol = '@';
+        this.color = 'green';
+        this.profession = 'Shopkeeper';
         this.inventory.push(new Revolver(true));
         this.bullets = 30;
         this.shopTop = top;
@@ -661,12 +775,12 @@ export class ShopKeep extends NonPlayerCharacter {
 
     }
 
-    getInteractions (character) {
+    getInteractions(character) {
         let interactions = [];
         if (this.getEmptyShopSpace()) {
             for (let item of character.inventory) {
                 if (item.value > 0) {
-                    interactions.push(new ItemSell(this, character, item, item.value));    
+                    interactions.push(new ItemSell(this, character, item, item.value));
                 }
             }
         }
@@ -682,13 +796,13 @@ export class ShopKeep extends NonPlayerCharacter {
         let spaces = [];
         for (let x = this.shopLeft + 1; x < this.shopLeft + this.shopWidth; x++) {
             for (let y = this.shopTop + 3; y < this.shopTop + this.shopHeight; y += 2) {
-                if (x != this.shopLeft + this.shopWidth/2) {
+                if (x != this.shopLeft + this.shopWidth / 2) {
                     if (this.game.spaceIsPassable(x, y)) {
                         spaces.push([x, y]);
                     }
                 }
             }
-        }        
+        }
 
         if (spaces.length > 0) {
             return _.sample(spaces);
@@ -711,6 +825,8 @@ export class Marshal extends NonPlayerCharacter {
         );
         this.name = `${_.sample(MALE_NAMES)} ${_.sample(LAST_NAMES)}`;
         this.symbol = '@';
+        this.color = 'blue';
+        this.profession = 'US Marshal';
 
         this.cents = 4000;
 
@@ -719,6 +835,55 @@ export class Marshal extends NonPlayerCharacter {
         this.inventory.push(new Rifle(true));
         this.inventory.push(new Revolver(true));
         this.bullets = 120;
+
+    }
+}
+
+export class LakotaScout extends NonPlayerCharacter {
+    constructor() {
+        super(
+            _.sample([0, 0, 1, 1]), // Level
+            _.sample([1, 1, 1, 1]), // Strength
+            _.sample([1, 1, 1, 2]), // Quickness
+            _.sample([0, 0, 1, 2]), // Cunning
+            _.sample([0, 0, 1, 1]), // Guile
+            _.sample([0, 0, 1, 1]), // Grit
+        );
+        this.name = _.sample(LAKOTA_MALE_NAMES);
+        this.symbol = '@';
+        this.color = 'firebrick';
+        this.profession = 'Lakota Scout';
+
+        this.cents = 0;
+
+        this.inventory.push(_.sample([new Pistol(), new Rifle(), new Bow()]));
+        this.inventory.push(new Knife());
+        this.arrows = 20;
+        this.bullets = 20;
+
+    }
+}
+
+export class LakotaWarrior extends NonPlayerCharacter {
+    constructor() {
+        super(
+            _.sample([1, 2, 2, 3]), // Level
+            _.sample([2, 2, 3, 4]), // Strength
+            _.sample([0, 1, 2, 3]), // Quickness
+            _.sample([0, 1, 1, 2]), // Cunning
+            _.sample([0, 0, 1, 1]), // Guile
+            _.sample([1, 2, 3, 4]), // Grit
+        );
+        this.name = _.sample(LAKOTA_MALE_NAMES);
+        this.symbol = '@';
+        this.color = 'red';
+        this.profession = 'Lakota Warrior';
+
+        this.cents = 0;
+
+        this.inventory.push(new Rifle());
+        this.inventory.push(new Axe());
+        this.bullets = 30;
 
     }
 }
@@ -735,6 +900,9 @@ export class Banker extends NonPlayerCharacter {
         );
         this.name = `${_.sample(MALE_NAMES)} ${_.sample(LAST_NAMES)}`;
         this.symbol = '@';
+        this.color = 'green';
+        this.profession = 'Banker';
+
         this.inventory.push(new Revolver(true));
         this.inventory.push(new VaultKey());
         this.bullets = 12;
@@ -748,7 +916,7 @@ export class Banker extends NonPlayerCharacter {
 
     }
 
-    getInteractions (character) {
+    getInteractions(character) {
         let interactions = [];
         if (this.accounts[character]) {
             if (this.accounts[character] >= 1000) {
@@ -768,13 +936,13 @@ export class Banker extends NonPlayerCharacter {
         let spaces = [];
         for (let x = this.shopLeft + 1; x < this.shopLeft + this.shopWidth; x++) {
             for (let y = this.shopTop + 3; y < this.shopTop + this.shopHeight; y += 2) {
-                if (x != this.shopLeft + this.shopWidth/2) {
+                if (x != this.shopLeft + this.shopWidth / 2) {
                     if (this.game.spaceIsPassable(x, y)) {
                         spaces.push([x, y]);
                     }
                 }
             }
-        }        
+        }
 
         if (spaces.length > 0) {
             return _.sample(spaces);

@@ -115,6 +115,7 @@ export const TILE_POKER_TABLE = next();
 export const TILE_BENCH = next();
 export const TILE_CROSS = next();
 export const TILE_VAULT_DOOR = next();
+export const TILE_GRAVE = next();
 
 export const TILES = {};
 TILES[TILE_DIRT_1] = {
@@ -221,6 +222,14 @@ TILES[TILE_VAULT_DOOR] = {
     blocksMove: true,
     blocksVision: true
 };
+TILES[TILE_GRAVE] = {
+    name: 'grave',
+    symbols: ['†'],
+    fore: 'white',
+    back: 'saddlebrown',
+    blocksMove: true,
+    blocksVision: false
+};
 
 export const XP_REQUIREMENTS = [
     0,
@@ -244,6 +253,47 @@ export const XP_REQUIREMENTS = [
     800,
     900,
     1000
+];
+
+export const LAKOTA_MALE_NAMES = [
+    'Akecheta',
+    'Akicita',
+    'Anoki',
+    'Canowicakte',
+    'Capa',
+    'Cetanwakuwa',
+    'Chankoowashtay',
+    'Chaska',
+    'Chaske',
+    'Chatan',
+    'Chaytan',
+    'Enapay',
+    'Hotah',
+    'Howahkan',
+    'Ishtaspa',
+    'Kangee',
+    'Mahpee',
+    'Mato',
+    'Matoskah',
+    'Misae',
+    'Ogaleesha',
+    'Ohanzee',
+    'Ohitekah',
+    'Otaktay',
+    'Paytah',
+    'Sintemaza',
+    'Sota',
+    'Tacanipiluta',
+    'Tahatan',
+    'Taheton',
+    'Tamilapesni',
+    'Tasunke',
+    'Tatonga',
+    'Teetonka',
+    'Wamblee',
+    'Wambli',
+    'Wanahton',
+    'Wi-sapa'
 ];
 
 export const MALE_NAMES = [

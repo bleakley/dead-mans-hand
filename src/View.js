@@ -78,7 +78,7 @@ export class View {
     }
 
     isMapSpaceInView(space) {
-        let {x, y} = this.mapCoordsToDisplayCoords(space);
+        let { x, y } = this.mapCoordsToDisplayCoords(space);
         if (x < 0 || y < 0 || x >= GAME_WINDOW_WIDTH || y >= GAME_WINDOW_HEIGHT) {
             return false;
         }
@@ -169,13 +169,13 @@ export class View {
         let interposingSpace = this.game.map.firstInterposingObstacleBetween(this.game.player, targetSpaceOnMap);
         if (interposingSpace) {
             let interposingCoords = this.mapCoordsToDisplayCoords(interposingSpace);
-            
+
             let playerCoords = this.mapCoordsToDisplayCoords(this.game.player);
             let points = bresenham(playerCoords.x, playerCoords.y, interposingCoords.x, interposingCoords.y).slice(1);
             points.forEach(point => {
                 this.display.draw(point.x, point.y, '\u2022', 'red', 'black');
             });
-            
+
             this.display.draw(interposingCoords.x, interposingCoords.y, 'X', 'red', 'black');
         }
     }
@@ -201,6 +201,25 @@ export class View {
                 }
             }
         }
+        //draw dragged bodies
+        for (let x = -halfWidth; x < halfWidth + widthOdd ? 1 : 0; x++) {
+            for (let y = -halfHeight; y < halfHeight + heightOdd ? 1 : 0; y++) {
+                let displayX = x + halfWidth;
+                let displayY = y + halfHeight;
+                let { x: mapX, y: mapY } = this.displayCoordsToMapCoords({ x: displayX, y: displayY });
+
+                let cellContents = this.game.getCellContents(mapX, mapY);
+                let tile = TILES[cellContents.terrain];
+
+                if (cellContents.characters.length) {
+                    if (cellContents.characters[0].bodyCarried) {
+                        let dragSpace = this.mapCoordsToDisplayCoords(cellContents.characters[0].previousSpace);
+                        this.display.draw(dragSpace.x, dragSpace.y, '&', 'white', tile.back);
+                    }
+                }
+            }
+        }
+
         if (this.showInventory) {
             this.clearSidebar();
             this.drawInventory();
@@ -458,7 +477,7 @@ export class View {
         this.drawSidebarRow(4, 'Subterfuge:', `${character.isPC ? character.subterfuge : '?'}/${character.getMaxSubterfuge()}`);
         this.drawSidebarRow(5, 'Money:', formatMoney(character.cents));
 
-        this.drawSidebarRow(7, 'Level ' + character.level, `${character.xp}/${XP_REQUIREMENTS[character.level+1]} xp`);
+        this.drawSidebarRow(7, 'Level ' + character.level, `${character.xp}/${XP_REQUIREMENTS[character.level + 1]} xp`);
         this.drawSidebarRow(8, 'Strength', character.strength);
         this.drawSidebarRow(9, 'Quickness', character.quickness);
         this.drawSidebarRow(10, 'Cunning', character.cunning);
@@ -611,14 +630,15 @@ export class View {
         if (characters.length) {
             let character = characters[0];
             this.display.drawText(displayCoords.x + 2, displayCoords.y + 0, character.name);
-            this.display.drawText(displayCoords.x + 2, displayCoords.y + 1, `Health: ${character.health}/${character.getMaxHealth()}`);
-            this.display.drawText(displayCoords.x + 2, displayCoords.y + 2, `Vigilance: ${character.vigilance}/${character.getMaxVigilance()}`);
-            this.display.drawText(displayCoords.x + 2, displayCoords.y + 3, `Subterfuge: ${character.isPC ? character.subterfuge : '?'}/${character.getMaxSubterfuge()}`);
-            this.display.drawText(displayCoords.x + 2, displayCoords.y + 4, `Money: ${formatMoney(character.cents)}`);
+            this.display.drawText(displayCoords.x + 2, displayCoords.y + 1, character.profession);
+            this.display.drawText(displayCoords.x + 2, displayCoords.y + 2, `Health: ${character.health}/${character.getMaxHealth()}`);
+            this.display.drawText(displayCoords.x + 2, displayCoords.y + 3, `Vigilance: ${character.vigilance}/${character.getMaxVigilance()}`);
+            this.display.drawText(displayCoords.x + 2, displayCoords.y + 4, `Subterfuge: ${character.isPC ? character.subterfuge : '?'}/${character.getMaxSubterfuge()}`);
+            this.display.drawText(displayCoords.x + 2, displayCoords.y + 5, `Money: ${formatMoney(character.cents)}`);
             if (character.activePokerPlayerRole) {
-                this.display.drawText(displayCoords.x + 2, displayCoords.y + 5, `Current bet: ${formatMoney(character.activePokerPlayerRole.currentBet)}`);
+                this.display.drawText(displayCoords.x + 2, displayCoords.y + 6, `Current bet: ${formatMoney(character.activePokerPlayerRole.currentBet)}`);
                 let cardsVisible = character.isPC || character.activePokerPlayerRole.cardsRevealed;
-                this.display.drawText(displayCoords.x + 2, displayCoords.y + 6, `Cards: ${formatCards(character.activePokerPlayerRole.hole, !cardsVisible)}`);
+                this.display.drawText(displayCoords.x + 2, displayCoords.y + 7, `Cards: ${formatCards(character.activePokerPlayerRole.hole, !cardsVisible)}`);
             }
         }
 

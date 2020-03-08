@@ -1,5 +1,5 @@
 import { Map } from './Map'
-import { PlayerCharacter, Scoundrel } from './Character';
+import { PlayerCharacter, Scoundrel, LakotaWarrior, LakotaScout } from './Character';
 import { TILES } from './Constants';
 import { PokerGame } from './PokerGame';
 
@@ -110,7 +110,7 @@ export class Game {
             this.player.join(this.getPokerGame(newX, newY));
             return true;
         } else if (this.getObjects(newX, newY).length) {
-            
+
         }
         return false;
     }
@@ -123,6 +123,18 @@ export class Game {
 
     playTurn() {
         this.turn++;
+
+        if (this.turn % 100 === 0) {
+            if (_.random(0, 1) === 1) {
+                this.addCharacter(new Scoundrel(), _.sample([-25, 25]), _.sample([-25, 25]));
+            } else if (_.random(0, 1) === 1) {
+                let x = _.sample([-25, 25]);
+                let y = _.sample([-25, 25]);
+                this.addCharacter(new LakotaWarrior(), x, y);
+                this.addCharacter(new LakotaScout(), x + 2, y);
+                this.addCharacter(new LakotaScout(), x - 2, y);
+            }
+        }
 
         this.pokerGames.forEach(g => {
             g.tick();
@@ -137,11 +149,11 @@ export class Game {
     }
 
     isSpaceBlocked(x, y) {
-        if(TILES[this.map.getTile(x, y)].blocksMove) {
+        if (TILES[this.map.getTile(x, y)].blocksMove) {
             return true;
         }
 
-        if(this.getCharacters(x, y).length) {
+        if (this.getCharacters(x, y).length) {
             return true;
         }
 

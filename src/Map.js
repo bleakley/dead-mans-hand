@@ -11,9 +11,14 @@ export class Map {
             new Town(-30, 0, 100, 60, this.seed, this)
         ];
 
+        this.editedTiles = [];
+
     }
 
     getTile(x, y) {
+        if (this.editedTiles[x] && this.editedTiles[x][y]) {
+            return this.editedTiles[x][y];
+        }
         let site = this.sites.find(s => s.overlapsCell(x, y));
         if (site) {
             return site.getTile(x - site.left, y - site.top);
@@ -25,6 +30,13 @@ export class Map {
             return TILE_WATER;
         }
         return sampleFromSeed(positionSeed, [TILE_GRASS_1, TILE_GRASS_1, TILE_GRASS_2, TILE_GRASS_3]);
+    }
+
+    setTile(x, y, tile) {
+        if (!this.editedTiles.hasOwnProperty(x)) {
+            this.editedTiles[x] = [];
+        }
+        this.editedTiles[x][y] = tile;
     }
 
     firstInterposingObstacleBetween(source, target) {
