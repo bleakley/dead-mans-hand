@@ -11,6 +11,7 @@ export class Game {
         this.objects = [];
         this.pokerGames = [];
         this.projectiles = [];
+        this.guardPosts = [];
         this.map = new Map(this);
 
         this.player = new PlayerCharacter();
@@ -149,7 +150,7 @@ export class Game {
                 max: 2,
                 current: 0,
                 class: Marshal,
-                frequency: 75,
+                frequency: 50,
                 followers: []
             },
             /*Priest: {

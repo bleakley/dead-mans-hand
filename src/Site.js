@@ -203,6 +203,15 @@ export class Town extends Site {
         this.map.game.addCharacter(new Marshal(), this.left + left + width / 2 + 2, this.top + bankerY);
         this.map.game.addCharacter(new Marshal(), this.left + left + width / 2 - 2, this.top + bankerY);
 
+        this.map.game.guardPosts.push({
+            x: this.left + left + width / 2 + 2,
+            y: this.top + bankerY
+        });
+
+        this.map.game.guardPosts.push({
+            x: this.left + left + width / 2 - 2,
+            y: this.top + bankerY
+        });
     }
 
 }

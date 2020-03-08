@@ -490,6 +490,9 @@ export class NonPlayerCharacter extends Character {
                 this.modifyOpinionOf(charactersInTheWay[0], -1);
                 this.say('Get out of my way!');
                 console.log(this.name + ' is blocking ' + charactersInTheWay[0].name);
+                this.aStar = null;
+                this.path = null;
+                return false;
             }
             this.generateNewPathIfRequired(x, y);
         }
@@ -581,6 +584,16 @@ export class NonPlayerCharacter extends Character {
                 }
             }
 
+        }
+
+        // Return to your post
+        if (this.desires.defendBank) {
+            let unmannedGuardPost = this.game.guardPosts.filter(p => this.spaceIsValidPath(p.x, p.y))[0];
+            if (unmannedGuardPost) {
+                if (this.walkPathIfPossible(unmannedGuardPost.x, unmannedGuardPost.y)) {
+                    return;
+                }
+            }
         }
 
         // look for a game if he wants to gamble
@@ -840,6 +853,7 @@ export class Marshal extends NonPlayerCharacter {
         this.cents = 4000;
 
         this.desires.attackProvokers = 5;
+        this.desires.defendBank = 5;
 
         this.inventory.push(new Rifle(true));
         this.inventory.push(new Revolver(true));
