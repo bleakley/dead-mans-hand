@@ -255,6 +255,47 @@ export const XP_REQUIREMENTS = [
     1000
 ];
 
+export const LAKOTA_MALE_NAMES = [
+    'Akecheta',
+    'Akicita',
+    'Anoki',
+    'Canowicakte',
+    'Capa',
+    'Cetanwakuwa',
+    'Chankoowashtay',
+    'Chaska',
+    'Chaske',
+    'Chatan',
+    'Chaytan',
+    'Enapay',
+    'Hotah',
+    'Howahkan',
+    'Ishtaspa',
+    'Kangee',
+    'Mahpee',
+    'Mato',
+    'Matoskah',
+    'Misae',
+    'Ogaleesha',
+    'Ohanzee',
+    'Ohitekah',
+    'Otaktay',
+    'Paytah',
+    'Sintemaza',
+    'Sota',
+    'Tacanipiluta',
+    'Tahatan',
+    'Taheton',
+    'Tamilapesni',
+    'Tasunke',
+    'Tatonga',
+    'Teetonka',
+    'Wamblee',
+    'Wambli',
+    'Wanahton',
+    'Wi-sapa'
+];
+
 export const MALE_NAMES = [
     'Abner',
     'Adam',

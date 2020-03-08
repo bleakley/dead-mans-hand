@@ -36,12 +36,12 @@ export class Town extends Site {
         let parcelWidth = 16;
         let padding = 4;
         let roadWidth = 6;
-        let parcelTopNorth = height/2 + roadWidth/2;
-        let parcelTopSouth  = height/2 - roadWidth/2 - parcelWidth; 
+        let parcelTopNorth = height / 2 + roadWidth / 2;
+        let parcelTopSouth = height / 2 - roadWidth / 2 - parcelWidth;
         for (let parcelLeft = padding; parcelLeft + parcelWidth < width - padding; parcelLeft += parcelWidth) {
-            parcels.push({ top: parcelTopNorth, left: parcelLeft, width: parcelWidth, height: parcelWidth, orientation: 'S'})
-            parcels.push({ top: parcelTopSouth, left: parcelLeft, width: parcelWidth, height: parcelWidth, orientation: 'N'})
-        } 
+            parcels.push({ top: parcelTopNorth, left: parcelLeft, width: parcelWidth, height: parcelWidth, orientation: 'S' })
+            parcels.push({ top: parcelTopSouth, left: parcelLeft, width: parcelWidth, height: parcelWidth, orientation: 'N' })
+        }
         this.createGround();
 
         let parcel = _.sample(parcels);
@@ -111,9 +111,9 @@ export class Town extends Site {
         } else {
             this.tiles[left + 6][top] = TILE_WOOD_DOOR;
         }
-        
+
         let poker = this.map.game.addPokerGame(this.left + poker_table_left, this.top + poker_table_top);
-        
+
         for (let coordinates of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
             if (_.sample([true, false])) {
                 let npc = this.map.game.addCharacter(new Scoundrel(), this.left + poker_table_left + coordinates[0], this.top + poker_table_top + coordinates[1]);
@@ -123,27 +123,27 @@ export class Town extends Site {
     }
 
     createChurch(top, left, width, height, orientation) {
-        
+
         this.createRoom(top, left, width, height);
 
         if (orientation === 'N') {
-            this.tiles[left + width/2][top + height] = TILE_WOOD_DOOR;
-            this.tiles[left + width/2][top + 1] = TILE_CROSS;
+            this.tiles[left + width / 2][top + height] = TILE_WOOD_DOOR;
+            this.tiles[left + width / 2][top + 1] = TILE_CROSS;
             // Create pews
             for (let x = left + 1; x < left + width; x++) {
                 for (let y = top + 3; y < top + height; y += 2) {
-                    if (x != left + width/2) {
+                    if (x != left + width / 2) {
                         this.tiles[x][y] = TILE_BENCH;
                     }
                 }
             }
         } else {
-            this.tiles[left + width/2][top] = TILE_WOOD_DOOR;
-            this.tiles[left + width/2][top + height - 1] = TILE_CROSS;
+            this.tiles[left + width / 2][top] = TILE_WOOD_DOOR;
+            this.tiles[left + width / 2][top + height - 1] = TILE_CROSS;
             // Create pews
             for (let x = left + 1; x < left + width; x++) {
                 for (let y = top + 1; y < top + height - 2; y += 2) {
-                    if (x != left + width/2) {
+                    if (x != left + width / 2) {
                         this.tiles[x][y] = TILE_BENCH;
                     }
                 }
@@ -152,29 +152,29 @@ export class Town extends Site {
 
         let priestY = orientation === 'N' ? top + 2 : top + height - 2;
 
-        let npc = this.map.game.addCharacter(new Priest(), this.left + left + width/2, this.top + priestY);
+        let npc = this.map.game.addCharacter(new Priest(), this.left + left + width / 2, this.top + priestY);
     }
 
     createShop(top, left, width, height, orientation) {
-        
+
         this.createRoom(top, left, width, height);
 
         if (orientation === 'N') {
-            this.tiles[left + width/2][top + height] = TILE_WOOD_DOOR;
+            this.tiles[left + width / 2][top + height] = TILE_WOOD_DOOR;
         } else {
-            this.tiles[left + width/2][top] = TILE_WOOD_DOOR;
+            this.tiles[left + width / 2][top] = TILE_WOOD_DOOR;
         }
 
         let shopKeepY = orientation === 'N' ? top + 1 : top + height - 1;
 
-        let shopKeep = this.map.game.addCharacter(new ShopKeep(this.top + top, this.left + left, width, height), this.left + left + width/2, this.top + shopKeepY);
+        let shopKeep = this.map.game.addCharacter(new ShopKeep(this.top + top, this.left + left, width, height), this.left + left + width / 2, this.top + shopKeepY);
         this.map.game.addObject(new ShopItem(new CanOfBeans(), 50, shopKeep), this.left + left + 1, this.top + top + 1);
 
     }
 
     createGraveyard(top, left, width, height, orientation) {
 
-        let undertaker = this.map.game.addCharacter(new Undertaker(this.top + top, this.left + left, width, height), this.left + left + width/2, this.top + top + height/2);
+        let undertaker = this.map.game.addCharacter(new Undertaker(this.top + top, this.left + left, width, height), this.left + left + width / 2, this.top + top + height / 2);
 
     }
 
@@ -185,23 +185,23 @@ export class Town extends Site {
 
         let vaultTop = orientation === 'N' ? top : top + lobbyHeight;
         let lobbyTop = orientation === 'N' ? top + lobbyHeight : top;
-        
+
         this.createRoom(lobbyTop, left, width, lobbyHeight);
         this.createRoom(vaultTop, left, width, vaultHeight);
 
         if (orientation === 'N') {
-            this.tiles[left + width/2][top + height] = TILE_WOOD_DOOR;
-            this.tiles[left + width/2][lobbyTop] = TILE_VAULT_DOOR;
+            this.tiles[left + width / 2][top + height] = TILE_WOOD_DOOR;
+            this.tiles[left + width / 2][lobbyTop] = TILE_VAULT_DOOR;
         } else {
-            this.tiles[left + width/2][top] = TILE_WOOD_DOOR;
-            this.tiles[left + width/2][vaultTop] = TILE_VAULT_DOOR;
+            this.tiles[left + width / 2][top] = TILE_WOOD_DOOR;
+            this.tiles[left + width / 2][vaultTop] = TILE_VAULT_DOOR;
         }
 
         let bankerY = orientation === 'N' ? lobbyTop + 1 : vaultTop - 1;
 
-        let banker = this.map.game.addCharacter(new Banker(this.top + vaultTop, this.left + left, width, vaultHeight), this.left + left + width/2, this.top + bankerY);
-        this.map.game.addCharacter(new Marshal(), this.left + left + width/2 + 2, this.top + bankerY);
-        this.map.game.addCharacter(new Marshal(), this.left + left + width/2 - 2, this.top + bankerY);
+        let banker = this.map.game.addCharacter(new Banker(this.top + vaultTop, this.left + left, width, vaultHeight), this.left + left + width / 2, this.top + bankerY);
+        this.map.game.addCharacter(new Marshal(), this.left + left + width / 2 + 2, this.top + bankerY);
+        this.map.game.addCharacter(new Marshal(), this.left + left + width / 2 - 2, this.top + bankerY);
 
     }
 
