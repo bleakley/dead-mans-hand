@@ -19,6 +19,7 @@ function chooseRandom(options) {
         }
         cumulativeValue += options[option];
     }
+    console.log(options)
     throw "No option chosen"; 
 }
 

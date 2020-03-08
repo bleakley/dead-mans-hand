@@ -573,7 +573,14 @@ export class View {
         if (cardsVisible && player.hole.length >= 2) {
             cardsDescription = ` (${player.bestHand().match})`;
         }
-        this.drawSidebarRow(y + 0, player.character.name + roleString);
+
+        let colorString = ''
+        console.log(player)
+        if (player.isActivePlayer()) {
+            colorString = '%c{white}';
+        }
+            
+        this.drawSidebarRow(y + 0, colorString + player.character.name + roleString);
         this.drawSidebarRow(y + 1, 'Cash:', formatMoney(player.character.cents));
         this.drawSidebarRow(y + 2, 'Current bet:', formatMoney(player.currentBet));
         this.drawCardSidebarRow(y + 3, `Cards:`, player.hole, !cardsVisible, player.inCurrentHand, cardsDescription);
