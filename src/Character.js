@@ -549,7 +549,7 @@ export class NonPlayerCharacter extends Character {
             }
         }
 
-        if (this.health < this.getMaxHealth() && this.cents >= 100) {
+        if (this.health < this.getMaxHealth() && this.cents >= 100 && !this.activePokerPlayerRole) {
             let surgeons = this.game.characters.filter(c => c.profession === 'Surgeon');
             if (surgeons) {
                 let nearestSurgeon = surgeons.sort((a, b) => this.distanceBetween(a) - this.distanceBetween(b))[0];
@@ -605,7 +605,7 @@ export class NonPlayerCharacter extends Character {
         }
 
         // look for a game if he wants to gamble
-        let possiblePokerGames = this.game.pokerGames.filter(g => this.cents >= 2*g.bigBlind)
+        let possiblePokerGames = this.game.pokerGames.filter(g => this.cents >= 2 * g.bigBlind)
         let nearestPokerGame = possiblePokerGames.sort((a, b) => this.distanceBetween(a) - this.distanceBetween(b))[0];
         if (nearestPokerGame && !this.activePokerPlayerRole && this.desires.gamble > 0) {
             if (this.distanceBetween(nearestPokerGame) === 1) {
@@ -636,7 +636,7 @@ export class NonPlayerCharacter extends Character {
             if (this.inventory.length > 0) {
                 let smallestBigBlind = Math.min(...this.game.pokerGames.map(g => g.bigBlind));
                 let inventoryValue = this.inventory.map(i => i.value).reduce((a, b) => a + b);
-                if (inventoryValue + this.cents >= 2*smallestBigBlind) {
+                if (inventoryValue + this.cents >= 2 * smallestBigBlind) {
                     let shopKeeps = this.game.characters.filter(c => c.profession == 'Shopkeeper');
                     if (shopKeeps) {
                         let nearestShopKeep = shopKeeps.sort((a, b) => this.distanceBetween(a) - this.distanceBetween(b))[0];
@@ -890,7 +890,7 @@ export class Surgeon extends NonPlayerCharacter {
         let interactions = [];
         if (character.health < character.getMaxHealth() && character.cents >= 100) {
             interactions.push(new Heal(this, character, 100));
-        } 
+        }
         /*if (this.getEmptyShopSpace()) {
             for (let item of character.inventory) {
                 if (item.value > 0) {
