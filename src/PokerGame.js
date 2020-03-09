@@ -255,7 +255,12 @@ export class PokerGame {
     dividePot() {
         this.round = 6;
         let winners = this.players.filter(p => p.inCurrentHand).filter(p => compareHands(this.winningHand, p.bestHand()) === 0);
-        winners.map(p => p.character.say('I win!'));
+        winners.map(p => {
+            p.character.say('I win!');
+            if (p.character.isPC) {
+                p.character.gainXp(2);
+            }
+        });
 
         let undividedMoney = 0;
         this.players.forEach(p => {

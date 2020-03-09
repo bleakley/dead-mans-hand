@@ -381,13 +381,6 @@ export class PlayerCharacter extends Character {
         }
     }
 
-    onWinHand() {
-        this.gainXp(3);
-    }
-
-    onLoseHand() {
-    }
-
     onAttack(target) {
         if (!target.isHostileTo(this)) {
             this.game.characters.forEach(c => {
@@ -692,21 +685,6 @@ export class NonPlayerCharacter extends Character {
         }
 
         this.wait();
-    }
-
-    onWinHand() {
-        this.winningStreak++;
-        this.losingStreak = 0;
-        this.desires.gamble++;
-        if (this.winningStreak > 1) {
-            this.desires.travel++;
-        }
-    }
-
-    onLoseHand() {
-        this.losingStreak++;
-        this.winningStreak = 0;
-        this.desires.travel++;
     }
 
     onAttack(target) {
