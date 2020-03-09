@@ -200,17 +200,20 @@ export class Town extends Site {
         let bankerY = orientation === 'N' ? lobbyTop + 1 : vaultTop - 1;
 
         let banker = this.map.game.addCharacter(new Banker(this.top + vaultTop, this.left + left, width, vaultHeight), this.left + left + width / 2, this.top + bankerY);
-        this.map.game.addCharacter(new Marshal(), this.left + left + width / 2 + 2, this.top + bankerY);
-        this.map.game.addCharacter(new Marshal(), this.left + left + width / 2 - 2, this.top + bankerY);
+        
+        let marshalY = orientation === 'N' ? top + height + 1 : top - 1;
+
+        this.map.game.addCharacter(new Marshal(), this.left + left + width / 2 + 2, this.top + marshalY);
+        this.map.game.addCharacter(new Marshal(), this.left + left + width / 2 - 2, this.top + marshalY);
 
         this.map.game.guardPosts.push({
             x: this.left + left + width / 2 + 2,
-            y: this.top + bankerY
+            y: this.top + marshalY
         });
 
         this.map.game.guardPosts.push({
             x: this.left + left + width / 2 - 2,
-            y: this.top + bankerY
+            y: this.top + marshalY
         });
     }
 

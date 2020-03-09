@@ -487,14 +487,15 @@ export class NonPlayerCharacter extends Character {
         if (!this.spaceIsValidPath(this.path[0].x, this.path[0].y)) {
             let charactersInTheWay = this.game.getCharacters(this.path[0].x, this.path[0].y);
             if (charactersInTheWay.length) {
-                this.modifyOpinionOf(charactersInTheWay[0], -1);
-                this.say('Get out of my way!');
+                if (this.getOpinionOf(charactersInTheWay[0]) <= 0) {
+                    this.modifyOpinionOf(charactersInTheWay[0], -1);
+                    this.say('Get out of my way!');
+                }
                 console.log(this.name + ' is blocking ' + charactersInTheWay[0].name);
                 this.aStar = null;
                 this.path = null;
                 return false;
             }
-            this.generateNewPathIfRequired(x, y);
         }
 
         if (this.path.length) {
@@ -624,32 +625,35 @@ export class NonPlayerCharacter extends Character {
         // should we check here if a character wants to leave a poker game?
 
         // If you want to play poker but don't have enough money, sell your stuff
-        if (!this.activePokerPlayerRole && this.desires.gamble > 0 && this.inventory.length > 0) {
-            let smallestBigBlind = Math.min(...this.game.pokerGames.map(g => g.bigBlind));
-            let inventoryValue = this.inventory.map(i => i.value).reduce((a, b) => a + b);
-            if (inventoryValue + this.cents >= 2*smallestBigBlind) {
-                let shopKeeps = this.game.characters.filter(c => c.profession == 'Shopkeeper');
-                if (shopKeeps) {
-                    let nearestShopKeep = shopKeeps.sort((a, b) => this.distanceBetween(a) - this.distanceBetween(b))[0];
-                    if (this.distanceBetween(nearestShopKeep) === 1) {
-                        let sellInteractions = nearestShopKeep.getInteractions(this).filter(i => i instanceof ItemSell);
-                        sellInteractions[0].onInteract(this);
-                        return;
-                    }
-                    if (this.walkPathIfPossible(nearestShopKeep.x, nearestShopKeep.y)) {
-                        return;
+        if (!this.activePokerPlayerRole && this.desires.gamble > 0) {
+            if (this.inventory.length > 0) {
+                let smallestBigBlind = Math.min(...this.game.pokerGames.map(g => g.bigBlind));
+                let inventoryValue = this.inventory.map(i => i.value).reduce((a, b) => a + b);
+                if (inventoryValue + this.cents >= 2*smallestBigBlind) {
+                    let shopKeeps = this.game.characters.filter(c => c.profession == 'Shopkeeper');
+                    if (shopKeeps) {
+                        let nearestShopKeep = shopKeeps.sort((a, b) => this.distanceBetween(a) - this.distanceBetween(b))[0];
+                        if (this.distanceBetween(nearestShopKeep) === 1) {
+                            let sellInteractions = nearestShopKeep.getInteractions(this).filter(i => i instanceof ItemSell);
+                            sellInteractions[0].onInteract(this);
+                            return;
+                        }
+                        if (this.walkPathIfPossible(nearestShopKeep.x, nearestShopKeep.y)) {
+                            return;
+                        }
                     }
                 }
             }
+            this.desires.travel++;
         }
 
         // check if the character wants to leave the map
         if (!this.activePokerPlayerRole && this.desires.travel > 10) {
-            if (this.x < -50 && this.distanceBetween(this.game.player) > 100) {
+            if (this.x < -50 && this.distanceBetween(this.game.player) > 35) {
                 this.game.removeCharacter(this);
                 return;
             }
-            if (this.y === 0 && Math.abs(this.x) < 3 && this.spaceIsValidPath(this.x - 1, this.y)) {
+            if (this.x <= 0 && Math.abs(this.y) < 3 && this.spaceIsValidPath(this.x - 1, this.y)) {
                 this.move(this.x - 1, this.y);
                 return;
             }
