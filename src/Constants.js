@@ -116,6 +116,7 @@ export const TILE_BENCH = next();
 export const TILE_CROSS = next();
 export const TILE_VAULT_DOOR = next();
 export const TILE_GRAVE = next();
+export const TILE_OPERATING_TABLE = next();
 
 export const TILES = {};
 TILES[TILE_DIRT_1] = {
@@ -227,6 +228,14 @@ TILES[TILE_GRAVE] = {
     symbols: ['†'],
     fore: 'white',
     back: 'saddlebrown',
+    blocksMove: true,
+    blocksVision: false
+};
+TILES[TILE_OPERATING_TABLE] = {
+    name: 'operating table',
+    symbols: ['+'],
+    fore: 'red',
+    back: 'white',
     blocksMove: true,
     blocksVision: false
 };

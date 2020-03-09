@@ -1,7 +1,7 @@
 import { MALE_NAMES, LAST_NAMES, LAKOTA_MALE_NAMES, RANGE_POINT_BLANK, RANGE_CLOSE, RANGE_MEDIUM, RANGE_LONG, RANGES, XP_REQUIREMENTS, MAX_PATHFINDING_RADIUS, TILE_GRAVE } from "./Constants";
 import { Fist, Revolver, Axe, Pistol, Bow, Knife, CanOfBeans, Shotgun, VaultKey, Rifle, Shovel, BoxOfBuckshot, BoxOfBullets } from "./Item";
 import { Body, ShopItem, Cash } from "./Object";
-import { ItemSell, MoneyWithdrawl, MoneyDeposit } from "./CharacterInteraction";
+import { ItemSell, MoneyWithdrawl, MoneyDeposit, Heal } from "./CharacterInteraction";
 import { BasicPokerStrategy } from "./PokerStrategy"
 import * as ROT from 'rot-js';
 
@@ -557,6 +557,21 @@ export class NonPlayerCharacter extends Character {
             }
         }
 
+        if (this.health < this.getMaxHealth() && this.cents >= 100) {
+            let surgeons = this.game.characters.filter(c => c.profession === 'Surgeon');
+            if (surgeons) {
+                let nearestSurgeon = surgeons.sort((a, b) => this.distanceBetween(a) - this.distanceBetween(b))[0];
+                if (this.distanceBetween(nearestSurgeon) === 1) {
+                    let sellInteractions = nearestSurgeon.getInteractions(this).filter(i => i instanceof Heal);
+                    sellInteractions[0].onInteract(this);
+                    return;
+                }
+                if (this.walkPathIfPossible(nearestSurgeon.x, nearestSurgeon.y)) {
+                    return;
+                }
+            }
+        }
+
         // At this point the NPC is not in combat, and is not worried about any immediate threats;
 
         // Bury bodies if he's into that sort of thing
@@ -873,6 +888,47 @@ export class ShopKeep extends NonPlayerCharacter {
             return null;
         }
     }
+}
+
+export class Surgeon extends NonPlayerCharacter {
+    constructor() {
+        super(
+            _.sample([0, 0, 1, 2]), // Level
+            _.sample([0, 1, 1, 1]), // Strength
+            _.sample([0, 1, 1, 2]), // Quickness
+            _.sample([2, 3, 4, 5]), // Cunning
+            _.sample([0, 0, 0, 1]), // Guile
+            _.sample([0, 0, 1, 2]), // Grit
+        );
+        this.name = `${_.sample(MALE_NAMES)} ${_.sample(LAST_NAMES)}`;
+        this.symbol = '@';
+        this.color = 'white';
+        this.profession = 'Surgeon';
+        this.inventory.push(new Knife());
+        this.cents = 4000;
+
+    }
+
+    getInteractions(character) {
+        let interactions = [];
+        if (character.health < character.getMaxHealth() && character.cents >= 100) {
+            interactions.push(new Heal(this, character, 100));
+        } 
+        /*if (this.getEmptyShopSpace()) {
+            for (let item of character.inventory) {
+                if (item.value > 0) {
+                    interactions.push(new ItemSell(this, character, item, item.value));
+                }
+            }
+        }*/
+        return interactions;
+    }
+
+    /*addItem(item) {
+        let space = this.getEmptyShopSpace();
+        this.game.addObject(new ShopItem(item, item.value, this), space[0], space[1]);
+    }*/
+
 }
 
 export class Marshal extends NonPlayerCharacter {

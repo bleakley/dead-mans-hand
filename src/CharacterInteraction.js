@@ -23,6 +23,20 @@ export class ItemSell extends CharacterInteraction {
     }
 }
 
+export class Heal extends CharacterInteraction {
+    constructor(character, patient, cost) {
+        super(character, `Buy medical care for ${formatMoney(cost)}`);
+        this.cost = cost;
+        this.patient = patient;
+    }
+
+    onInteract(character) {
+        character.health++;
+        character.cents -= this.cost;
+        this.character.cents += this.cost;
+    }
+}
+
 export class MoneyDeposit extends CharacterInteraction {
     constructor(character, value) {
         super(character, 'Deposit ' + formatMoney(value));
