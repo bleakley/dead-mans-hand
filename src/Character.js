@@ -359,16 +359,15 @@ export class PlayerCharacter extends Character {
         this.cents = 2000;
         this.isPC = true;
         this.isNPC = false;
-        this.bullets = 50;
-        this.buckshot = 20;
-        this.arrows = 20;
+        this.bullets = 36;
+        this.buckshot = 0;
+        this.arrows = 0;
 
         this.profession = '(You)';
 
-        this.inventory.push(new Revolver(true));
+        this.inventory.push(new Pistol(true));
         this.inventory.push(new Knife());
         this.inventory.push(new CanOfBeans());
-        this.inventory.push(new Shotgun(true));
     }
 
     gainXp(xp) {

@@ -176,7 +176,7 @@ export class Game {
                 min: 0,
                 max: 1,
                 current: 0,
-                frequency: 5,
+                frequency: 3,
                 class: LakotaWarrior,
                 followers: [LakotaScout, LakotaScout]
             },
@@ -184,7 +184,7 @@ export class Game {
                 min: 0,
                 max: 4,
                 current: 0,
-                frequency: 10,
+                frequency: 7,
                 class: LakotaScout,
                 followers: [LakotaScout]
             }
