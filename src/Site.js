@@ -1,7 +1,7 @@
 import { TILE_DIRT_1, TILE_DIRT_2, TILE_WOOD_FLOOR, TILE_WOOD_WALL, TILE_WOOD_DOOR, TILE_POKER_TABLE, TILE_BENCH, TILE_CROSS, TILE_VAULT_DOOR } from './Constants';
 import { Scoundrel, Priest, ShopKeep, Banker, Marshal, Undertaker } from './Character';
 import { ShopItem } from './Object';
-import { CanOfBeans } from './Item';
+import { BoxOfBullets, BoxOfBuckshot, Shotgun } from './Item';
 
 export class Site {
     constructor(top, left, width, height, seed, map) {
@@ -168,7 +168,9 @@ export class Town extends Site {
         let shopKeepY = orientation === 'N' ? top + 1 : top + height - 1;
 
         let shopKeep = this.map.game.addCharacter(new ShopKeep(this.top + top, this.left + left, width, height), this.left + left + width / 2, this.top + shopKeepY);
-        this.map.game.addObject(new ShopItem(new CanOfBeans(), 50, shopKeep), this.left + left + 1, this.top + top + 1);
+        this.map.game.addObject(new ShopItem(new BoxOfBullets(), 150, shopKeep), this.left + left + 1, this.top + top + 1);
+        this.map.game.addObject(new ShopItem(new BoxOfBuckshot(), 150, shopKeep), this.left + left + 2, this.top + top + 1);
+        this.map.game.addObject(new ShopItem(new Shotgun(), 3000, shopKeep), this.left + left + 6, this.top + top + 1);
 
     }
 

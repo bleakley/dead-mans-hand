@@ -29,8 +29,36 @@ export class CanOfBeans extends Item {
         super();
         this.name = 'can of beans';
         this.description = 'Some tasty beans.';
-        this.symbol = 'B';
+        this.symbol = 'o';
         this.value =  50;
+    }
+}
+
+export class BoxOfBullets extends Item {
+    constructor() {
+        super();
+        this.name = '36 bullets';
+        this.description = 'A box of bullets.';
+        this.symbol = 'b';
+        this.value =  100;
+    }
+
+    onBuy(character) {
+        character.bullets += 36;
+    }
+}
+
+export class BoxOfBuckshot extends Item {
+    constructor() {
+        super();
+        this.name = '12 buckshot shells';
+        this.description = 'A box of buckshot shells.';
+        this.symbol = 's';
+        this.value =  100;
+    }
+
+    onBuy(character) {
+        character.buckshot += 12;
     }
 }
 

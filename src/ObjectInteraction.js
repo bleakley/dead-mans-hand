@@ -17,9 +17,13 @@ export class ItemPurchase extends ObjectInteraction {
 
     onInteract(character) {
         if (character.cents >= this.price) {
-            character.inventory.push(this.item);
             character.cents -= this.price;
             this.owner.cents += this.price;
+            if (this.item.onBuy) {
+                this.item.onBuy(character);
+            } else {
+                character.inventory.push(this.item);
+            }
             this.object.delete()
         }
     }

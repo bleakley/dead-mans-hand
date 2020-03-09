@@ -29,7 +29,9 @@ export class ShopItem extends Object {
     }
 
     getInteractions() {
-        return [new ItemPurchase(this, this.owner, this.item, this.price), new ItemSteal(this, this.owner, this.item)];
+        //disable stealing for now
+        //return [new ItemPurchase(this, this.owner, this.item, this.price), new ItemSteal(this, this.owner, this.item)];
+        return [new ItemPurchase(this, this.owner, this.item, this.price)];
     }
 }
 
