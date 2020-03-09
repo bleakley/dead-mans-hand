@@ -415,7 +415,7 @@ class Player {
     }
 
     call() {
-        this.currentBet = this.game.getHighestBet();
+        this.currentBet += Math.min(this.game.getHighestBet() - this.currentBet, this.character.cents);
         this.game.lastPlayerToBet = this;
         this.game.waitingForActivePlayerAction = false;
         this.character.say(`I call.`);

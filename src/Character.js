@@ -50,6 +50,7 @@ export class Character {
         this.threat = 0;
 
         this.utterance = '';
+        this.utteranceBuffer = [];
         this.activePokerPlayerRole = null;
 
         let aggressiveness = _.sample([0., 0.25, 0.5, 0.75, 1.0]);
@@ -136,7 +137,6 @@ export class Character {
     }
 
     startTurn() {
-        this.utterance = '';
     }
 
     join(pokerGame) {
@@ -148,12 +148,7 @@ export class Character {
     }
 
     say(utterance) {
-        if (this.utterance) {
-            this.utterance += ' ' + utterance;
-        }
-        else {
-            this.utterance = utterance;
-        }
+        this.utteranceBuffer.push(utterance);
     }
 
     wait() {
@@ -349,6 +344,11 @@ export class Character {
     }
 
     onCatchesCheater(target) {
+    }
+
+    onTurnEnd() {
+        this.utterance = this.utteranceBuffer.join(' ');
+        this.utteranceBuffer = [];
     }
 }
 

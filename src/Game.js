@@ -235,6 +235,9 @@ export class Game {
             g.tick();
         });
 
+        this.characters.forEach(c => {
+            c.onTurnEnd();
+        });
     }
 
     isSpaceBlocked(x, y) {
