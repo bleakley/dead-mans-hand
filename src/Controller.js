@@ -234,7 +234,7 @@ export class Controller {
         }
         this.view.drawMessageLog();
         this.view.drawMap();
-        //this.view.drawOverlay();
+        this.view.drawOverlay();
         let flash = this.view.drawMuzzleFlash();
         if (flash) {
             setTimeout(() => this.view.drawMap(), 50);

@@ -243,7 +243,7 @@ export class View {
             this.drawSidebar();
         }
         this.drawUtterances();
-        //this.drawOverlay();
+        this.drawOverlay();
         this.drawCursor();
     }
 
@@ -605,10 +605,10 @@ export class View {
     }
 
     drawOverlay() {
-        let mouseMap = this.getMapMouseCoords();
-        let mouseDisplay = this.getDisplayMouseCoords();
-        this.display.drawText(0, 0, `Turn: ${this.game.turn} Player: ${this.game.player.x},${this.game.player.y}`);
-        this.display.drawText(0, 1, `(Mouse) Map: ${mouseMap.x},${mouseMap.y} Display: ${mouseDisplay.x},${mouseDisplay.y}`);
+        // let mouseMap = this.getMapMouseCoords();
+        // let mouseDisplay = this.getDisplayMouseCoords();
+        // this.display.drawText(0, 0, `Turn: ${this.game.turn} Player: ${this.game.player.x},${this.game.player.y}`);
+        // this.display.drawText(0, 1, `(Mouse) Map: ${mouseMap.x},${mouseMap.y} Display: ${mouseDisplay.x},${mouseDisplay.y}`);
         this.drawTooltip();
     }
 
