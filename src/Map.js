@@ -26,7 +26,7 @@ export class Map {
 
         let positionSeed = szudzikPair(this.seed, szudzikPair(x, y));
 
-        if (x > 40 && x < 50) {
+        if (x > 110 && x < 120) {
             return TILE_WATER;
         }
         return sampleFromSeed(positionSeed, [TILE_GRASS_1, TILE_GRASS_1, TILE_GRASS_2, TILE_GRASS_3]);

@@ -379,7 +379,7 @@ export class View {
                 if (pokerRole.canFold()) {
                     commands.push({
                         key: 'Z',
-                        description: 'fold and keep ' + formatCards([pokerRole.getBestCard()])
+                        description: '   fold but pocket the ' + formatCards([pokerRole.getBestCard()])
                     });
                     commands.push({
                         key: 'F',
