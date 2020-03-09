@@ -252,7 +252,7 @@ export class Character {
         }
 
         if (!hit) {
-            this.game.log(`${this.name} attacks ${target.name} with his ${weapon.name}. [${attackRoll}] + ${attackBonus} vs ${ac} and misses.`);
+            this.game.log(`${this.name} misses ${target.name} at ${RANGES[range].name} range (${rangeBonus >= 0 ? '+' + rangeBonus : rangeBonus}) with his ${weapon.name}.`);
             return;
         }
 
@@ -1000,7 +1000,7 @@ export class Banker extends NonPlayerCharacter {
         this.profession = 'Banker';
 
         this.inventory.push(new Revolver(true));
-        this.inventory.push(new VaultKey());
+        //this.inventory.push(new VaultKey());
         this.bullets = 12;
         this.shopTop = top;
         this.shopLeft = left;
