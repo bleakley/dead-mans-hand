@@ -40,11 +40,12 @@ export class BoxOfBullets extends Item {
         this.name = '36 bullets';
         this.description = 'A box of bullets.';
         this.symbol = 'b';
-        this.value =  100;
+        this.value =  150;
     }
 
     onBuy(character) {
         character.bullets += 36;
+        character.game.storeNeedsBullets = true;
     }
 }
 
@@ -59,6 +60,7 @@ export class BoxOfBuckshot extends Item {
 
     onBuy(character) {
         character.buckshot += 12;
+        character.game.storeNeedsBuckshot = true;
     }
 }
 

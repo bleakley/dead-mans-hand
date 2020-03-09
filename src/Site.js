@@ -169,7 +169,7 @@ export class Town extends Site {
 
         let shopKeep = this.map.game.addCharacter(new ShopKeep(this.top + top, this.left + left, width, height), this.left + left + width / 2, this.top + shopKeepY);
         this.map.game.addObject(new ShopItem(new BoxOfBullets(), 150, shopKeep), this.left + left + 1, this.top + top + 1);
-        this.map.game.addObject(new ShopItem(new BoxOfBuckshot(), 150, shopKeep), this.left + left + 2, this.top + top + 1);
+        this.map.game.addObject(new ShopItem(new BoxOfBuckshot(), 100, shopKeep), this.left + left + 2, this.top + top + 1);
         this.map.game.addObject(new ShopItem(new Shotgun(), 3000, shopKeep), this.left + left + 6, this.top + top + 1);
 
     }

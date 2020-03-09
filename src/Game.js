@@ -17,6 +17,11 @@ export class Game {
         this.player = new PlayerCharacter();
         this.addCharacter(this.player, 0, 0);
 
+        //hacky variables, delete these later
+        this.storeNeedsBullets = false;
+        this.storeNeedsBuckshot = false;
+        //hacky variables, delete these later
+
         this.characters.forEach(c => {
             c.onGameStart();
         });

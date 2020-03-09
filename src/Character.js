@@ -1,5 +1,5 @@
 import { MALE_NAMES, LAST_NAMES, LAKOTA_MALE_NAMES, RANGE_POINT_BLANK, RANGE_CLOSE, RANGE_MEDIUM, RANGE_LONG, RANGES, XP_REQUIREMENTS, MAX_PATHFINDING_RADIUS, TILE_GRAVE } from "./Constants";
-import { Fist, Revolver, Axe, Pistol, Bow, Knife, CanOfBeans, Shotgun, VaultKey, Rifle, Shovel } from "./Item";
+import { Fist, Revolver, Axe, Pistol, Bow, Knife, CanOfBeans, Shotgun, VaultKey, Rifle, Shovel, BoxOfBuckshot, BoxOfBullets } from "./Item";
 import { Body, ShopItem, Cash } from "./Object";
 import { ItemSell, MoneyWithdrawl, MoneyDeposit } from "./CharacterInteraction";
 import { BasicPokerStrategy } from "./PokerStrategy"
@@ -646,6 +646,21 @@ export class NonPlayerCharacter extends Character {
             }
             this.desires.travel++;
         }
+
+        //hacky variables, delete these later
+        if (this.profession === 'Shopkeeper') {
+            if (this.game.storeNeedsBullets && _.random(1, 100) < 5) {
+                this.addItem(new BoxOfBullets());
+                this.game.storeNeedsBullets = false;
+                return;
+            }
+            if (this.game.storeNeedsBuckshot && _.random(1, 100) < 5) {
+                this.addItem(new BoxOfBuckshot());
+                this.game.storeNeedsBuckshot = false;
+                return;
+            }
+        }
+        //hacky variables, delete these later
 
         // check if the character wants to leave the map
         if (!this.activePokerPlayerRole && this.desires.travel > 10) {
