@@ -243,7 +243,7 @@ export class View {
             this.drawSidebar();
         }
         this.drawUtterances();
-        this.drawOverlay();
+        //this.drawOverlay();
         this.drawCursor();
     }
 
